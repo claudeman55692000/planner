@@ -1,0 +1,10 @@
+// Minimal service worker so notifications work on phones (Chrome/Android requires it).
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('notificationclick', e => {
+e.notification.close();
+e.waitUntil(self.clients.matchAll({ type: 'window' }).then(cs => {
+if (cs.length) return cs[0].focus();
+return self.clients.openWindow('./');
+}));
+});
