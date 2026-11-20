@@ -32,9 +32,21 @@
    "cat": "academic"
   }
  ],
- "assignments": [],
+ "assignments": [
+  {
+   "id": "hohsm8b",
+   "title": "Calculus unit 4 test",
+   "classId": "9v5fmbq",
+   "type": "test",
+   "subtitle": "",
+   "due": null,
+   "notes": "",
+   "done": false,
+   "last": ""
+  }
+ ],
  "settings": {
   "time": "16:00"
  },
- "updated": "2026-11-20T14:35:25.003Z"
+ "updated": "2026-11-20T14:37:30.913Z"
 }
