@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4f46e5">
+<title>Study Planner</title>
+<style>
+:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+#app{max-width:640px;margin:0 auto;padding:16px 14px 80px}
+h1{margin:0;font-size:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+h2{font-size:18px;margin:0 0 10px}
+.top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 14px}
+.sub{color:#fff;opacity:.95;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.card{background:var(--glass);backdrop-filter:blur(8px);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 14px;background:#e5e7eb;color:var(--ink)}
+button.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-weight:600}
+button.big{width:100%;padding:16px;font-size:17px;margin-bottom:10px}
+button.ghost{background:rgba(255,255,255,.25);color:#fff}
+button.danger{background:#fee2e2;color:var(--bad)}
+button.ok{background:#dcfce7;color:var(--ok)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1}
+.chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:13px;margin:3px 4px 3px 0;color:#fff}
+.academic{background:#4f46e5}.other{background:#ea580c}
+.t-test{background:#dc2626}.t-quiz{background:#d97706}.t-homework{background:#2563eb}.t-project{background:#7c3aed}.t-other{background:#6b7280}
+.asg{cursor:pointer}
+.asg.done{opacity:.55}
+.asg .title{font-weight:700;font-size:16px}
+.small{font-size:13px;color:#4b5563}
+.late{color:var(--bad);font-weight:700}
+.soon{color:#b45309;font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(10,10,30,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.box{background:#fff;border-radius:18px;padding:18px;width:100%;max-width:440px;max-height:90vh;overflow:auto}
+.box h3{margin:0 0 12px}
+.box button{width:100%;margin-bottom:8px}
+input[type=text],input[type=date],input[type=time],select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #d1d5db;border-radius:10px;margin-bottom:10px;background:#fff}
+textarea{min-height:90px}
+label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;background:rgba(255,255,255,.35);color:#fff}
+.tabs button.on{background:#fff;color:var(--acc);font-weight:700}
+.walls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.walls button{height:50px;padding:0;margin:0;border:2px solid #fff;box-shadow:0 0 0 1px #d1d5db}
+#toasts{position:fixed;left:0;right:0;top:10px;z-index:99;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:#111827;color:#fff;padding:12px 16px;border-radius:14px;max-width:92%;box-shadow:0 6px 18px rgba(0,0,0,.35);pointer-events:auto}
+.empty{text-align:center;color:#4b5563;padding:10px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+<script>
+const KEY='gabe-planner-v1';
+const TYPES={test:'Test',quiz:'Quiz',homework:'Homework',project:'Special project',other:'Other'};
+const WINDOW={test:7,quiz:4,project:10,homework:2,other:3}; // days before due to start daily reminders
+const WALLS=[
+ ['Sunset','linear-gradient(135deg,#6366f1,#ec4899)'],
+ ['Ocean','linear-gradient(135deg,#0ea5e9,#14b8a6)'],
+ ['Forest','linear-gradient(135deg,#16a34a,#065f46)'],
+ ['Fire','linear-gradient(135deg,#f97316,#dc2626)'],
+ ['Night','linear-gradient(135deg,#1e1b4b,#4338ca)'],
+ ['Candy','linear-gradient(135deg,#f472b6,#a78bfa)'],
+ ['Lime','linear-gradient(135deg,#a3e635,#22d3ee)'],
+ ['Slate','linear-gradient(135deg,#334155,#0f172a)']
+];
+let S=load();
+let view='home', filter='active';
+
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.classes)return d}catch(e){}
+  return {classes:[],assignments:[],settings:{wall:{type:'css',value:WALLS[0][1]},time:'16:00'}};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save (storage full?). Try a smaller wallpaper.')}scheduleSync()}
+
+/* ---------- GitHub sync ---------- */
+const SYNC_KEY='gabe-planner-sync';
+function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return {}}}
+let syncTimer;
+function scheduleSync(){const c=syncCfg();if(!c.repo||!c.token)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(false),1500)}
+async function syncNow(verbose){
+  const c=syncCfg();
+  if(!c.repo||!c.token){if(verbose)toast('Add your repo and token in Settings first.');return}
+  const url=`https://api.github.com/repos/${c.repo}/contents/assignments.json`;
+  const h={Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json'};
+  try{
+    let sha;const g=await fetch(url,{headers:h});
+    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub said '+g.status+' (check repo name and token)');
+    const data={name:S.settings.name,classes:S.classes,assignments:S.assignments,settings:{time:S.settings.time},updated:new Date().toISOString()};
+    const body={message:'Sync planner',content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,1))))};
+    if(sha)body.sha=sha;
+    const p=await fetch(url,{method:'PUT',headers:h,body:JSON.stringify(body)});
+    if(!p.ok)throw new Error('GitHub said '+p.status+' (token needs Contents: read & write)');
+    if(verbose)toast('Synced to GitHub ✓');
+  }catch(e){toast('Sync failed: '+e.message)}
+}
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function daysUntil(due){if(!due)return null;return Math.round((new Date(due+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/864e5)}
+function cls(id){return S.classes.find(c=>c.id===id)}
+function prettyDate(d){return new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+
+/* ---------- wallpaper ---------- */
+function applyWall(){
+  const w=S.settings.wall;
+  if(w.type==='image')document.body.style.background=`url(${w.value}) center/cover fixed`;
+  else document.body.style.background=w.value;
+}
+
+/* ---------- modals ---------- */
+function modal(fn){
+  return new Promise(res=>{
+    const ov=document.createElement('div');ov.className='overlay';
+    const box=document.createElement('div');box.className='box';
+    ov.appendChild(box);document.body.appendChild(ov);
+    const close=v=>{ov.remove();res(v)};
+    ov.addEventListener('click',e=>{if(e.target===ov)close(null)});
+    fn(box,close);
+  });
+}
+function choose(title,options){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>${esc(title)}</h3>`;
+    options.forEach(o=>{
+      const b=document.createElement('button');b.textContent=o.label;
+      if(o.cls)b.className=o.cls;
+      b.onclick=()=>close(o.value);box.appendChild(b);
+    });
+    const c=document.createElement('button');c.textContent='Cancel';c.className='danger';c.onclick=()=>close(null);box.appendChild(c);
+  });
+}
+function ask(title,placeholder,initial=''){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>${esc(title)}</h3><input type="text" placeholder="${esc(placeholder)}" value="${esc(initial)}"><button class="pri">OK</button><button class="danger">Cancel</button>`;
+    const inp=box.querySelector('input'),[ok,no]=box.querySelectorAll('button');
+    const go=()=>{const v=inp.value.trim();if(v)close(v);else inp.focus()};
+    ok.onclick=go;no.onclick=()=>close(null);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+    setTimeout(()=>inp.focus(),50);
+  });
+}
+function dateModal(initial){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>When is it due?</h3><input type="date" value="${esc(initial||'')}"><button class="pri">Save date</button><button class="ok">N/A: remind me daily until I turn it off</button><button class="danger">Cancel</button>`;
+    const inp=box.querySelector('input'),[ok,na,no]=box.querySelectorAll('button');
+    ok.onclick=()=>{if(inp.value)close(inp.value);else inp.focus()};
+    na.onclick=()=>close('NA');no.onclick=()=>close(null);
+  });
+}
+
+/* ---------- classes ---------- */
+async function addClass(){
+  const name=await ask('Class name','e.g. Calculus');if(!name)return;
+  const cat=await choose('Which category is "'+name+'"?',[{label:'Academic',value:'academic',cls:'pri'},{label:'Other (sports, chess, clubs...)',value:'other'}]);
+  if(!cat)return;
+  S.classes.push({id:uid(),name,cat});save();render();
+}
+async function manageClasses(){
+  await modal((box,close)=>{
+    const draw=()=>{
+      box.innerHTML='<h3>Your classes</h3>'+(S.classes.length?'':'<p class="small">No classes yet.</p>');
+      S.classes.forEach(c=>{
+        const b=document.createElement('button');
+        b.innerHTML=`<span class="chip ${c.cat}">${c.cat==='academic'?'Academic':'Other'}</span> ${esc(c.name)}`;
+        b.onclick=async()=>{
+          const a=await choose(c.name,[{label:'Rename',value:'r'},{label:'Change category',value:'c'},{label:'Delete',value:'d',cls:'danger'}]);
+          if(a==='r'){const n=await ask('Rename class','Class name',c.name);if(n)c.name=n}
+          if(a==='c'){const n=await choose('Category for '+c.name,[{label:'Academic',value:'academic'},{label:'Other',value:'other'}]);if(n)c.cat=n}
+          if(a==='d'&&confirm('Delete '+c.name+'? Its assignments stay but lose their class.'))S.classes=S.classes.filter(x=>x!==c);
+          save();draw();render();
+        };
+        box.appendChild(b);
+      });
+      const add=document.createElement('button');add.className='pri';add.textContent='+ Add class';add.onclick=async()=>{await addClass();draw()};
+      const d=document.createElement('button');d.textContent='Done';d.onclick=()=>close(1);
+      box.append(add,d);
+    };
+    draw();
+  });
+}
+
+/* ---------- new assignment wizard ---------- */
+async function newAssignment(){
+  if(!S.classes.length){toast('Add a class first!');await addClass();if(!S.classes.length)return}
+  const title=await ask('Assignment title','e.g. Calculus unit test');if(!title)return;
+  const classId=await choose('Which class is this for?',S.classes.map(c=>({label:c.name+(c.cat==='other'?'  (other)':''),value:c.id})));if(!classId)return;
+  const type=await choose('What type of assignment is this?',Object.entries(TYPES).map(([v,l])=>({label:l,value:v})));if(!type)return;
+  let subtitle='';
+  if(type==='project'||type==='other'){const s=await ask('Give it a subtitle','e.g. Poster, Lab report, Chess tournament');if(!s)return;subtitle=s}
+  const d=await dateModal('');if(!d)return;
+  S.assignments.push({id:uid(),title,classId,type,subtitle,due:d==='NA'?null:d,notes:'',done:false,last:''});
+  save();view='list';filter='active';render();toast('Added! Reminders are set.');checkReminders();
+}
+
+/* ---------- edit ---------- */
+function editAssignment(id){
+  const a=S.assignments.find(x=>x.id===id);if(!a)return;
+  modal((box,close)=>{
+    box.innerHTML=`<h3>Edit assignment</h3>
+    <label>Title</label><input type="text" id="e_t" value="${esc(a.title)}">
+    <label>Class</label><select id="e_c">${S.classes.map(c=>`<option value="${c.id}" ${c.id===a.classId?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    <label>Type</label><select id="e_y">${Object.entries(TYPES).map(([v,l])=>`<option value="${v}" ${v===a.type?'selected':''}>${l}</option>`).join('')}</select>
+    <label>Subtitle (optional)</label><input type="text" id="e_s" value="${esc(a.subtitle)}">
+    <label>Due date</label><input type="date" id="e_d" value="${esc(a.due||'')}">
+    <label><input type="checkbox" id="e_n" ${a.due?'':'checked'}> No due date (remind me daily)</label>
+    <label style="margin-top:10px">Notes / commentary</label><textarea id="e_o">${esc(a.notes)}</textarea>
+    <button class="pri" id="e_save">Save</button>
+    <button class="ok" id="e_done">${a.done?'Reactivate (turn reminders back on)':'Mark done (turn reminders off)'}</button>
+    <button class="danger" id="e_del">Delete</button>
+    <button id="e_x">Close</button>`;
+    const g=i=>box.querySelector('#'+i);
+    g('e_save').onclick=()=>{
+      a.title=g('e_t').value.trim()||a.title;a.classId=g('e_c').value;a.type=g('e_y').value;a.subtitle=g('e_s').value.trim();
+      a.due=g('e_n').checked?null:(g('e_d').value||null);a.notes=g('e_o').value;a.last='';
+      save();close(1);render();toast('Saved');checkReminders();
+    };
+    g('e_done').onclick=()=>{a.done=!a.done;a.last='';save();close(1);render()};
+    g('e_del').onclick=()=>{if(confirm('Delete this assignment?')){S.assignments=S.assignments.filter(x=>x!==a);save();close(1);render()}};
+    g('e_x').onclick=()=>close(null);
+  });
+}
+
+/* ---------- settings ---------- */
+function settingsModal(){
+  modal((box,close)=>{
+    const perm=('Notification' in window)?Notification.permission:'unsupported';
+    box.innerHTML=`<h3>Settings</h3>
+    <label>Your name</label><input type="text" id="s_name" value="${esc(S.settings.name||'')}">
+    <label>Wallpaper</label>
+    <div class="walls">${WALLS.map((w,i)=>`<button data-w="${i}" style="background:${w[1]}" title="${w[0]}"></button>`).join('')}</div>
+    <label>Custom color</label><input type="color" id="s_col" style="width:100%;height:44px;border:0;margin-bottom:10px">
+    <label>Your own picture</label><input type="file" accept="image/*" id="s_img" style="margin-bottom:10px">
+    <label>Daily reminder time</label><input type="time" id="s_time" value="${esc(S.settings.time)}">
+    <label>GitHub sync: your repo (username/repo-name)</label><input type="text" id="s_repo" placeholder="yourname/planner" value="${esc(syncCfg().repo||'')}">
+    <label>GitHub token</label><input type="password" id="s_tok" placeholder="paste token" value="${esc(syncCfg().token||'')}">
+    <button id="s_sync">Save &amp; sync now</button>
+    <button id="s_n">Notifications: ${perm==='granted'?'ON ✓ (send a test)':'tap to enable'}</button>
+    <button class="pri" id="s_ok">Done</button>`;
+    const g=i=>box.querySelector('#'+i);
+    box.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{S.settings.wall={type:'css',value:WALLS[b.dataset.w][1]};save();applyWall()});
+    g('s_col').oninput=e=>{S.settings.wall={type:'css',value:e.target.value};save();applyWall()};
+    g('s_img').onchange=e=>{
+      const f=e.target.files[0];if(!f)return;
+      const r=new FileReader();
+      r.onload=()=>{const im=new Image();im.onload=()=>{
+        const m=1400,k=Math.min(1,m/Math.max(im.width,im.height));
+        const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        S.settings.wall={type:'image',value:c.toDataURL('image/jpeg',.7)};save();applyWall();
+      };im.src=r.result};
+      r.readAsDataURL(f);
+    };
+    g('s_name').onchange=e=>{const v=e.target.value.trim();if(v){S.settings.name=v;save();render()}};
+    g('s_time').onchange=e=>{S.settings.time=e.target.value||'16:00';save();checkReminders()};
+    g('s_n').onclick=async()=>{
+      if(!('Notification' in window)){toast('This browser does not support notifications.');return}
+      let p=Notification.permission;if(p!=='granted')p=await Notification.requestPermission();
+      if(p==='granted'){fire(S.settings.name+"'s Planner",'Notifications are working! 🎉');g('s_n').textContent='Notifications: ON ✓ (send a test)'}
+      else toast('Notifications are blocked. Allow them in your browser/site settings.');
+    };
+    g('s_sync').onclick=()=>{
+      const repo=g('s_repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/$/,''),token=g('s_tok').value.trim();
+      try{localStorage.setItem(SYNC_KEY,JSON.stringify({repo,token}))}catch(e){}
+      syncNow(true);
+    };
+    g('s_ok').onclick=()=>close(1);
+  });
+}
+
+/* ---------- notifications ---------- */
+function fire(title,body){
+  toast(body);
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const fallback=()=>{try{new Notification(title,{body})}catch(e){}};
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistration().then(r=>{if(r)r.showNotification(title,{body,icon:undefined});else fallback()}).catch(fallback);
+  }else fallback();
+}
+function message(a){
+  const nm=S.settings.name||'friend';
+  const c=cls(a.classId),d=daysUntil(a.due),cn=c?` (${c.name})`:'';
+  const when=d===null?'':d===0?'today':d===1?'tomorrow':`in ${d} days`;
+  const sub=a.subtitle?` – ${a.subtitle}`:'';
+  if(d===null)return `Reminder, ${nm}: ${a.title}${sub}${cn}. Turn this off in the app when it's done.`;
+  switch(a.type){
+    case 'test':return `Study, ${nm}! You need time to study the unit review for ${a.title}${cn}. Test ${when}.`;
+    case 'quiz':return `Quiz ${when}: ${a.title}${cn}. Take 20 minutes to review, ${nm}.`;
+    case 'homework':return `Homework due ${when}: ${a.title}${cn}. Knock it out, ${nm}.`;
+    case 'project':return `Work on your project "${a.title}"${sub}${cn}. Due ${when}.`;
+    default:return `${a.title}${sub}${cn}: due ${when}.`;
+  }
+}
+function dueToday(){
+  const now=new Date(),[h,m]=(S.settings.time||'16:00').split(':').map(Number);
+  const past=now.getHours()*60+now.getMinutes()>=h*60+m;
+  return S.assignments.filter(a=>{
+    if(a.done)return false;
+    const d=daysUntil(a.due);
+    return d===null||(d>=0&&d<=(WINDOW[a.type]||3));
+  }).map(a=>({a,past}));
+}
+function checkReminders(){
+  const t=todayStr();let changed=false;
+  dueToday().forEach(({a,past})=>{
+    if(past&&a.last!==t){a.last=t;changed=true;fire((S.settings.name||'My')+"'s Planner",message(a))}
+  });
+  if(changed)save();
+}
+function toast(msg){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),6000);
+}
+
+/* ---------- render ---------- */
+function render(){
+  const app=document.getElementById('app');
+  const active=S.assignments.filter(a=>!a.done);
+  if(view==='home'){
+    const focus=dueToday();
+    const cats={academic:S.classes.filter(c=>c.cat==='academic'),other:S.classes.filter(c=>c.cat==='other')};
+    app.innerHTML=`
+    <div class="top"><div><h1>${esc(S.settings.name)}'s Planner</h1><div class="sub">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div></div>
+      <button class="ghost" id="b_set">⚙ Settings</button></div>
+    ${focus.length?`<div class="card"><h2>🔔 On your radar</h2>${focus.map(({a})=>`<div class="small" style="margin-bottom:6px;color:#111">${esc(message(a))}</div>`).join('')}</div>`:''}
+    <button class="pri big" id="b_new">＋ New assignment</button>
+    <button class="big" id="b_list">📋 My assignments (${active.length} active)</button>
+    <div class="card"><h2>Academic classes</h2>${cats.academic.map(c=>`<span class="chip academic">${esc(c.name)}</span>`).join('')||'<span class="small">None yet</span>'}
+    <h2 style="margin-top:12px">Other (sports, chess, clubs)</h2>${cats.other.map(c=>`<span class="chip other">${esc(c.name)}</span>`).join('')||'<span class="small">None yet</span>'}
+    <div class="row" style="margin-top:12px"><button id="b_addc">+ Add class</button><button id="b_manc">Edit classes</button></div></div>`;
+    q('b_set').onclick=settingsModal;q('b_new').onclick=newAssignment;q('b_list').onclick=()=>{view='list';render()};
+    q('b_addc').onclick=addClass;q('b_manc').onclick=manageClasses;
+  }else{
+    let list=S.assignments.filter(a=>filter==='all'||(filter==='done'?a.done:!a.done));
+    list.sort((x,y)=>(x.due||'9999').localeCompare(y.due||'9999'));
+    app.innerHTML=`<div class="top"><h1>My assignments</h1><button class="ghost" id="b_home">← Home</button></div>
+    <div class="tabs">${['active','done','all'].map(f=>`<button data-f="${f}" class="${filter===f?'on':''}">${f[0].toUpperCase()+f.slice(1)}</button>`).join('')}</div>
+    <button class="pri big" id="b_new">＋ New assignment</button>
+    ${list.map(a=>{
+      const c=cls(a.classId),d=daysUntil(a.due);
+      let due=a.due?prettyDate(a.due):'No due date (daily reminders)';
+      let st='';if(d!==null&&!a.done){st=d<0?`<span class="late">Overdue by ${-d}d</span>`:d===0?'<span class="soon">Due today</span>':d<=3?`<span class="soon">${d}d left</span>`:`${d}d left`}
+      return `<div class="card asg ${a.done?'done':''}" data-id="${a.id}">
+      <div class="title">${a.done?'✓ ':''}${esc(a.title)}</div>
+      <div><span class="chip t-${a.type}">${TYPES[a.type]}${a.subtitle?': '+esc(a.subtitle):''}</span>${c?`<span class="chip ${c.cat}">${esc(c.name)}</span>`:''}</div>
+      <div class="small">${due} ${st}</div>${a.notes?`<div class="small" style="margin-top:6px">📝 ${esc(a.notes)}</div>`:''}</div>`}).join('')||'<div class="card empty">Nothing here yet.</div>'}`;
+    q('b_home').onclick=()=>{view='home';render()};q('b_new').onclick=newAssignment;
+    app.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
+    app.querySelectorAll('.asg').forEach(el=>el.onclick=()=>editAssignment(el.dataset.id));
+  }
+}
+function q(id){return document.getElementById(id)}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+async function ensureName(){
+  while(!S.settings.name){
+    const n=await modal((box,close)=>{
+      box.innerHTML='<h3>Welcome! 👋 What\'s your name?</h3><p class="small">I\'ll use it in your reminders.</p><input type="text" placeholder="Your name"><button class="pri">Let\'s go</button>';
+      const inp=box.querySelector('input'),b=box.querySelector('button');
+      const go=()=>{const v=inp.value.trim();if(v)close(v);else inp.focus()};
+      b.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+      setTimeout(()=>inp.focus(),50);
+    });
+    if(n){S.settings.name=n;save()}
+  }
+}
+applyWall();ensureName().then(()=>{render();checkReminders()});
+setInterval(checkReminders,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();checkReminders()}});
+</script>
+</body>
+</html>
