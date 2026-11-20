@@ -20,11 +20,16 @@
    "id": "ytbi7e2",
    "name": "Honors spanish",
    "cat": "academic"
+  },
+  {
+   "id": "nnrr4za",
+   "name": "Ap Physics",
+   "cat": "academic"
   }
  ],
  "assignments": [],
  "settings": {
   "time": "16:00"
  },
- "updated": "2026-11-20T14:34:36.850Z"
+ "updated": "2026-11-20T14:35:07.573Z"
 }
