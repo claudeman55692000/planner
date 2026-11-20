@@ -1,0 +1,67 @@
+name: Study reminders
+on:
+ schedule:
+ - cron: '7 * * * *' # checks hourly; only sends at your reminder hour (Chicago time)
+ workflow_dispatch: # lets you run it by hand to test
+permissions:
+ issues: write
+ contents: read
+jobs:
+ remind:
+ runs-on: ubuntu-latest
+ steps:
+ - uses: actions/checkout@v4
+ - uses: actions/github-script@v7
+ with:
+ script: |
+ const fs = require('fs');
+ const d = JSON.parse(fs.readFileSync('assignments.json', 'utf8'));
+ const tz = 'America/Chicago';
+ const parts = Object.fromEntries(
+ new Intl.DateTimeFormat('en-CA', {
+ timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+ hour: '2-digit', hourCycle: 'h23'})
+ .formatToParts(new Date()).map(p => [p.type, p.value]));
+ const today = `${parts.year}-${parts.month}-${parts.day}`;
+ const hour = parseInt(parts.hour, 10);
+ const want = parseInt(((d.settings || {}).time || '16:00').split(':')[0], 10);
+ if (context.eventName === 'schedule' && hour !== want) {
+ core.info('Not the reminder hour yet.');
+ return;
+ }
+ const WINDOW = {test: 7, quiz: 4, project: 10, homework: 2, other: 3};
+ const days = due => Math.round((new Date(due + 'T00:00:00Z') - new Date(today + 'T00:00:00Z')) / 864e5);
+ const nm = d.name || 'friend';
+ const clsName = id => (d.classes.find(c => c.id === id) || {}).name;
+ function message(a) {
+ const dl = a.due ? days(a.due) : null;
+ const cn = clsName(a.classId) ? ` (${clsName(a.classId)})` : '';
+ const sub = a.subtitle ? ` - ${a.subtitle}` : '';
+ const when = dl === null ? '' : dl === 0 ? 'today' : dl === 1 ? 'tomorrow' : `in ${dl} days`;
+ if (dl === null) return `Reminder, ${nm}: ${a.title}${sub}${cn}. Turn this off in the planner when it's done.`;
+ switch (a.type) {
+ case 'test': return `Study, ${nm}! You need time to study the unit review for ${a.title}${cn}. Test ${when}.`;
+ case 'quiz': return `Quiz ${when}: ${a.title}${cn}. Take 20 minutes to review, ${nm}.`;
+ case 'homework': return `Homework due ${when}: ${a.title}${cn}. Knock it out, ${nm}.`;
+ case 'project': return `Work on your project "${a.title}"${sub}${cn}. Due ${when}.`;
+ default: return `${a.title}${sub}${cn}: due ${when}.`;
+ }
+ }
+ const items = (d.assignments || []).filter(a => {
+ if (a.done) return false;
+ if (!a.due) return true;
+ const dl = days(a.due);
+ return dl >= 0 && dl <= (WINDOW[a.type] || 3);
+ }).map(message);
+ if (!items.length) { core.info('Nothing to remind about.'); return; }
+ const {owner, repo} = context.repo;
+ const open = await github.rest.issues.listForRepo({owner, repo, state: 'open', per_page: 50});
+ for (const i of open.data) {
+ if (!i.pull_request && i.title.startsWith('Study reminders')) {
+ await github.rest.issues.update({owner, repo, issue_number: i.number, state: 'closed'});
+ } }
+ await github.rest.issues.create({
+ owner, repo,
+ title: `Study reminders for ${today}`,
+ body: `@${owner}\n\n` + items.map(m => '- ' + m).join('\n')
+ });
