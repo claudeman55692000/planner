@@ -10,11 +10,16 @@
    "id": "8rugpzd",
    "name": "Ap Chemistry",
    "cat": "academic"
+  },
+  {
+   "id": "z1y53wn",
+   "name": "Concurrent WH",
+   "cat": "academic"
   }
  ],
  "assignments": [],
  "settings": {
   "time": "16:00"
  },
- "updated": "2026-11-20T14:26:46.875Z"
+ "updated": "2026-11-20T14:34:20.277Z"
 }
