@@ -39,7 +39,7 @@
    "classId": "9v5fmbq",
    "type": "test",
    "subtitle": "",
-   "due": null,
+   "due": "2026-11-29",
    "notes": "",
    "done": false,
    "last": ""
@@ -48,5 +48,5 @@
  "settings": {
   "time": "16:00"
  },
- "updated": "2026-11-20T14:41:31.066Z"
+ "updated": "2026-11-20T14:41:36.835Z"
 }
