@@ -1847,9 +1847,10 @@ async function startZippyHighFive(){
   const {stage,caption,buddy,raisedHand}=makeHighFiveStage(dramatic);
   let finished=false;
 
-  const doHighFive=async()=>{
+    const doHighFive=async()=>{
     if(finished)return;
     finished=true;
+    raisedHand.remove();
 
     if(!dramatic){
       stage.classList.add('smacked');
