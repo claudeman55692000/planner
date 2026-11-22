@@ -393,7 +393,7 @@ function buddyArtwork(id){
       :'<path d="M50 81L55 87L50 93L45 87Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/>')
     :'';
 
-  const hair=animal?'':hairShapes[buddy.style];
+  const hairMarkup=animal?'':hairShapes[buddy.style];
   const auraColor=buddy.sword||eyes;
 
   return '<svg class="buddy-art motion-'+motion+' '+characterType+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
@@ -403,7 +403,7 @@ function buddyArtwork(id){
     +'<g class="buddy-body"><path d="M21 98Q23 77 50 76Q77 77 79 98Z" fill="'+outfit+'" stroke="#33263d" stroke-width="3"/><path d="M40 79L50 91L60 79" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>'+bodyMark+'</g>'
     +'<g class="buddy-arm"><path d="M24 83L14 93M76 83L86 93" stroke="'+outfit+'" stroke-width="9" stroke-linecap="round"/><circle cx="14" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/><circle cx="86" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/></g>'
     +sword+ears+head
-    +(animal?'':'<g class="buddy-hair">'+hair+'</g>')
+    +(animal?'':'<g class="buddy-hair">'+hairMarkup+'</g>')
     +accessory+eyesMarkup+animalFace
     +'</svg>';
 }
