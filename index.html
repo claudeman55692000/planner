@@ -109,6 +109,258 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
 @keyframes zippy-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px) rotate(-5deg)}}
 @media(max-width:380px){.buddy-picker{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face,.buddy-art,.buddy-art *{animation:none!important}}
+.zippy-menu-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  display:grid;
+  place-items:center;
+  padding:16px;
+  background:rgba(10,10,30,.55);
+}
+
+.zippy-menu{
+  width:min(100%,360px);
+  padding:18px;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 35px #0005;
+}
+
+.zippy-menu h3{margin:0 0 8px}
+.zippy-menu p{margin:0 0 14px}
+.zippy-menu button{
+  display:block;
+  width:100%;
+  margin:8px 0;
+  text-align:left;
+}
+
+.highfive-stage{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  pointer-events:none;
+}
+
+.highfive-caption{
+  position:absolute;
+  top:7vh;
+  left:50%;
+  width:min(90vw,540px);
+  transform:translateX(-50%);
+  padding:14px 18px;
+  border:3px solid #111;
+  border-radius:18px;
+  background:#fff;
+  color:#111;
+  text-align:center;
+  font-size:clamp(18px,4vw,27px);
+  font-weight:800;
+  box-shadow:0 6px 20px #0005;
+}
+
+.highfive-buddy{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:150px;
+  height:150px;
+  padding:0;
+  transform:translate(-50%,-50%);
+  border:5px solid #111;
+  border-radius:50%;
+  background:#ffd84d;
+  pointer-events:auto;
+  overflow:visible;
+  box-shadow:0 8px 30px #0005;
+  animation:highfive-arrive .55s ease-out both;
+}
+
+.highfive-buddy .buddy-art{width:100%;height:100%}
+
+.highfive-stage.dramatic .highfive-buddy{
+  width:clamp(180px,30vw,250px);
+  height:clamp(180px,30vw,250px);
+  border-width:7px;
+  box-shadow:0 0 0 12px #fff8,0 0 55px 25px #ff7b00aa,0 10px 35px #0007;
+  animation:dramatic-arrive .85s cubic-bezier(.2,1.5,.4,1) both;
+}
+
+.hf-flames{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:min(90vw,440px);
+  height:min(90vw,440px);
+  transform:translate(-50%,-50%);
+  opacity:0;
+  pointer-events:none;
+}
+
+.dramatic .hf-flames{opacity:1}
+
+.hf-flames span{
+  position:absolute;
+  bottom:7%;
+  left:calc(8% + var(--i)*7%);
+  width:22%;
+  height:62%;
+  border-radius:50% 50% 35% 35%;
+  background:linear-gradient(to top,#fff 0%,#ffe342 18%,#ff7b14 48%,#ed3025 72%,transparent 100%);
+  filter:blur(3px);
+  transform-origin:50% 100%;
+  animation:flame-dance .42s ease-in-out infinite alternate;
+  animation-delay:calc(var(--i)*-.09s);
+}
+
+.hf-flames span:nth-child(even){
+  height:48%;
+  animation-duration:.31s;
+}
+
+.hf-raised-hand{
+  position:absolute;
+  top:calc(50% - 150px);
+  left:calc(50% + 50px);
+  z-index:2;
+  font-size:clamp(48px,12vw,80px);
+  opacity:0;
+  transform:rotate(-18deg) scale(.3);
+  pointer-events:none;
+}
+
+.dramatic .hf-raised-hand{
+  animation:hand-up .55s 1s ease-out forwards,hand-wave .35s 1.6s ease-in-out infinite alternate;
+}
+
+.hf-cracks{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  pointer-events:none;
+}
+
+.cracked .hf-cracks{animation:crack-fade 1.8s ease-out forwards}
+
+.hf-cracks path{
+  fill:none;
+  stroke:#171717;
+  stroke-width:.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 2px white);
+}
+
+.hf-flash{
+  position:absolute;
+  inset:0;
+  background:#fff;
+  opacity:0;
+  pointer-events:none;
+}
+
+.explosion .hf-flash{animation:screen-flash .35s ease-out}
+
+.hf-hit{
+  position:absolute;
+  top:50%;
+  left:50%;
+  z-index:4;
+  color:#fff;
+  font-size:clamp(32px,10vw,64px);
+  font-weight:1000;
+  text-shadow:3px 3px #111,-2px -2px #111,0 0 18px #ff6b00;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.2) rotate(-12deg);
+  pointer-events:none;
+}
+
+.smacked .hf-hit{animation:hit-pop .7s ease-out forwards}
+
+.hf-thumb{
+  position:absolute;
+  top:calc(50% - 150px);
+  left:calc(50% + 65px);
+  z-index:3;
+  font-size:clamp(64px,15vw,100px);
+  opacity:0;
+  transform:scale(.2) rotate(-25deg);
+  pointer-events:none;
+}
+
+.show-thumb .hf-thumb{animation:thumb-pop .5s ease-out forwards}
+
+.highfive-stage.returning .highfive-buddy{
+  animation:buddy-return .8s ease-in-out forwards;
+}
+
+.highfive-stage.returning .hf-flames,
+.highfive-stage.returning .hf-raised-hand,
+.highfive-stage.returning .hf-thumb,
+.highfive-stage.returning .highfive-caption{
+  opacity:0;
+  transition:opacity .45s ease;
+}
+
+body.zippy-highfive-active #zippy-dock{visibility:hidden}
+
+@keyframes highfive-arrive{
+  from{opacity:0;transform:translate(-50%,-35%) scale(.5)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+@keyframes dramatic-arrive{
+  from{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-20deg)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+
+@keyframes flame-dance{
+  from{transform:scale(.75,.8) rotate(-12deg);filter:blur(2px)}
+  to{transform:scale(1.2,1.18) rotate(12deg);filter:blur(5px)}
+}
+
+@keyframes hand-up{
+  to{opacity:1;transform:rotate(0) scale(1)}
+}
+
+@keyframes hand-wave{
+  from{translate:0 0;rotate:-8deg}
+  to{translate:0 -10px;rotate:8deg}
+}
+
+@keyframes crack-fade{
+  0%{opacity:0}
+  12%,48%{opacity:1}
+  100%{opacity:0}
+}
+
+@keyframes screen-flash{
+  0%{opacity:.95}
+  100%{opacity:0}
+}
+
+@keyframes hit-pop{
+  15%{opacity:1;transform:translate(-50%,-50%) scale(1.35) rotate(8deg)}
+  100%{opacity:0;transform:translate(-50%,-75%) scale(1) rotate(0)}
+}
+
+@keyframes thumb-pop{
+  to{opacity:1;transform:scale(1) rotate(8deg)}
+}
+
+@keyframes buddy-return{
+  from{transform:translate(-50%,-50%) scale(1)}
+  to{transform:translate(calc(50vw - 50px - 50%),calc(50vh - 50px - 50%)) scale(.35)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .highfive-stage *,
+  .zippy-menu-backdrop *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
 </style>
 </head>
 <body>
@@ -1403,6 +1655,207 @@ function toast(messageText){
   zippySpeak(messageText);
 }
 
+  const ZIPPY_WHAT_ARE_YOU_KEY='zippy-what-are-you-used';
+
+function zippyMenu(){
+  const backdrop=document.createElement('div');
+  backdrop.className='zippy-menu-backdrop';
+
+  const menu=document.createElement('div');
+  menu.className='zippy-menu';
+  menu.setAttribute('role','dialog');
+  menu.setAttribute('aria-modal','true');
+  menu.setAttribute('aria-label','Zippy choices');
+
+  const title=document.createElement('h3');
+  title.textContent='What would you like to do?';
+  menu.appendChild(title);
+
+  const choices=document.createElement('div');
+  menu.appendChild(choices);
+
+  const closeButton=document.createElement('button');
+  closeButton.textContent='Close';
+  closeButton.className='danger';
+  closeButton.onclick=()=>backdrop.remove();
+  menu.appendChild(closeButton);
+
+  backdrop.appendChild(menu);
+  backdrop.addEventListener('click',event=>{
+    if(event.target===backdrop)backdrop.remove();
+  });
+
+  const addChoice=(label,action)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=label;
+    button.onclick=()=>{
+      backdrop.remove();
+      action();
+    };
+    choices.appendChild(button);
+  };
+
+  let whatUsed=false;
+  try{
+    whatUsed=localStorage.getItem(ZIPPY_WHAT_ARE_YOU_KEY)==='yes';
+  }catch(error){}
+
+  if(!whatUsed){
+    addChoice('What are you?',()=>{
+      try{localStorage.setItem(ZIPPY_WHAT_ARE_YOU_KEY,'yes')}catch(error){}
+      zippySpeak("I'm Zippy, your study buddy! I'm here to cheer you on.");
+    });
+  }
+
+  addChoice('High five!',startZippyHighFive);
+  document.body.appendChild(backdrop);
+}
+
+function playZippySmack(){
+  try{
+    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextClass)return;
+
+    const context=new AudioContextClass();
+    const oscillator=context.createOscillator();
+    const volume=context.createGain();
+
+    oscillator.type='triangle';
+    oscillator.frequency.setValueAtTime(190,context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(65,context.currentTime+.12);
+    volume.gain.setValueAtTime(.35,context.currentTime);
+    volume.gain.exponentialRampToValueAtTime(.001,context.currentTime+.16);
+
+    oscillator.connect(volume);
+    volume.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime+.16);
+    oscillator.onended=()=>context.close();
+  }catch(error){}
+}
+
+function waitForZippy(milliseconds){
+  return new Promise(resolve=>setTimeout(resolve,milliseconds));
+}
+
+function makeHighFiveStage(dramatic){
+  const stage=document.createElement('div');
+  stage.className='highfive-stage'+(dramatic?' dramatic':'');
+  stage.setAttribute('aria-live','polite');
+
+  const caption=document.createElement('div');
+  caption.className='highfive-caption';
+  caption.textContent=dramatic
+    ?'ARE YOU READY??? HIGH....FIVE....ME!!!!!!'
+    :'Ready? Tap Zippy for a high five!';
+
+  const flames=document.createElement('div');
+  flames.className='hf-flames';
+  for(let i=0;i<12;i++){
+    const flame=document.createElement('span');
+    flame.style.setProperty('--i',i);
+    flames.appendChild(flame);
+  }
+
+  const cracks=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  cracks.classList.add('hf-cracks');
+  cracks.setAttribute('viewBox','0 0 100 100');
+  cracks.setAttribute('preserveAspectRatio','none');
+  cracks.innerHTML=`
+    <path d="M50 50L43 38L46 27L37 17M43 38L30 40L20 34M46 27L54 19L51 8
+      M50 50L61 43L72 45L83 37M61 43L63 30L72 23M72 45L81 55L94 57
+      M50 50L45 62L34 68L29 82M45 62L51 73L48 91M34 68L20 67L10 75
+      M50 50L59 61L72 64L80 76M59 61L58 75L66 86M72 64L86 62L94 68"/>`;
+
+  const flash=document.createElement('div');
+  flash.className='hf-flash';
+
+  const buddy=document.createElement('button');
+  buddy.type='button';
+  buddy.className='highfive-buddy';
+  buddy.setAttribute('aria-label','Tap Zippy for a high five');
+
+  const originalFace=document.getElementById('zippy-face');
+  if(originalFace){
+    buddy.style.backgroundColor=originalFace.style.backgroundColor||'#ffd84d';
+    const artwork=originalFace.cloneNode(true);
+    artwork.removeAttribute('id');
+    artwork.removeAttribute('aria-label');
+    buddy.appendChild(artwork);
+  }else{
+    buddy.textContent='😀';
+  }
+
+  const raisedHand=document.createElement('div');
+  raisedHand.className='hf-raised-hand';
+  raisedHand.textContent='✋';
+  raisedHand.setAttribute('aria-hidden','true');
+
+  const thumb=document.createElement('div');
+  thumb.className='hf-thumb';
+  thumb.textContent='👍';
+  thumb.setAttribute('aria-hidden','true');
+
+  const hit=document.createElement('div');
+  hit.className='hf-hit';
+  hit.textContent='SMACK!';
+  hit.setAttribute('aria-hidden','true');
+
+  stage.append(caption,flames,cracks,flash,buddy,raisedHand,thumb,hit);
+  document.body.classList.add('zippy-highfive-active');
+  document.body.appendChild(stage);
+
+  return {stage,caption,buddy};
+}
+
+async function startZippyHighFive(){
+  const dramatic=Number(S.settings.cheer||0)>=3;
+  const {stage,caption,buddy}=makeHighFiveStage(dramatic);
+  let finished=false;
+
+  buddy.onclick=async()=>{
+    if(finished)return;
+    finished=true;
+
+    if(!dramatic){
+      stage.classList.add('smacked');
+      playZippySmack();
+      await waitForZippy(800);
+      stage.classList.add('returning');
+      await waitForZippy(850);
+      stage.remove();
+      document.body.classList.remove('zippy-highfive-active');
+      zippySpeak("You're doing good");
+      return;
+    }
+
+    stage.classList.add('cracked','explosion');
+    playZippySmack();
+    await waitForZippy(1800);
+
+    caption.textContent=
+      'You are doing SPECTACULARLY '+
+      (S.settings.name||'friend')+
+      '!!! You DESERVED that HIGH-FIVE!!!!!';
+
+    stage.classList.add('show-thumb');
+    await waitForZippy(3200);
+
+    stage.classList.add('returning');
+    await waitForZippy(850);
+    stage.remove();
+    document.body.classList.remove('zippy-highfive-active');
+  };
+}
+
+function openZippyMenu(){
+  zippySpeak(
+    `Hi!! I'm ${S.settings.buddyName||'Zippy'}! What would you like to do?`
+  );
+  zippyMenu();
+}
+  
 /* ---------- render ---------- */
 function render(){
   const app=document.getElementById('app');
@@ -1425,8 +1878,7 @@ function render(){
     </div>
     ${focus.length?`<div class="card"><h2>🔔 On your radar</h2>${focus.map(({a})=>`<div class="small" style="margin-bottom:6px;color:#111">${esc(message(a))}</div>`).join('')}</div>`:''}
     <button class="pri big" id="b_new">＋ New assignment</button>
-    <button class="big" id="b_list">📋 My assignments (${active.length} active)</button>
-    <div class="card">
+<button class="big" id="b_list">📋 My assignments (${active.length} active)</button>    <div class="card">
       <h2>Academic classes</h2>
       ${categories.academic.map(item=>`<span class="chip academic">${esc(item.name)}</span>`).join('')||'<span class="small">None yet</span>'}
       <h2 style="margin-top:12px">Other (sports, chess, clubs)</h2>
@@ -1532,8 +1984,7 @@ async function ensureName(){
 
 applyFont();
 updateZippy();
-q('zippy-face').onclick=()=>{
-  zippySpeak(`Hi! I'm ${S.settings.buddyName||'Zippy'}—you've got this!`);
+q('zippy-face').onclick=openZippyMenu;
 };
 applyWall();
 ensureName().then(()=>{
