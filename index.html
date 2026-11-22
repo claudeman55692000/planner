@@ -223,11 +223,13 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
   position:absolute;
   top:calc(50% - 150px);
   left:calc(50% + 50px);
-  z-index:2;
+  z-index:5;
   font-size:clamp(48px,12vw,80px);
   opacity:0;
   transform:rotate(-18deg) scale(.3);
-  pointer-events:none;
+  pointer-events:auto;
+  cursor:pointer;
+  touch-action:manipulation;
 }
 
 .dramatic .hf-raised-hand{
@@ -244,6 +246,12 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
 }
 
 .cracked .hf-cracks{animation:crack-fade 1.8s ease-out forwards}
+.level-five.cracked .hf-cracks{animation-duration:3s}
+.level-five .hf-cracks path{
+  stroke:#111;
+  stroke-width:1.6;
+  filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 2px #111);
+}
 
 .hf-cracks path{
   fill:none;
@@ -354,7 +362,14 @@ body.zippy-highfive-active #zippy-dock{visibility:hidden}
 
 @keyframes buddy-return{
   from{transform:translate(-50%,-50%) scale(1)}
-  to{transform:translate(calc(50vw - 50px - 50%),calc(50vh - 50px - 50%)) scale(.35)}
+  to{
+    transform:
+      translate(
+        calc(50vw - 56px - 50%),
+        calc(50vh - 56px - 50%)
+      )
+      scale(.35);
+  }
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -1741,7 +1756,9 @@ function waitForZippy(milliseconds){
 
 function makeHighFiveStage(dramatic){
   const stage=document.createElement('div');
-  stage.className='highfive-stage'+(dramatic?' dramatic':'');
+  const cheerLevel=Number(S.settings.cheer||0);
+stage.className='highfive-stage'+(dramatic?' dramatic':'')+
+  (cheerLevel>=5?' level-five':'');
   stage.setAttribute('aria-live','polite');
 
   const caption=document.createElement('div');
@@ -1763,10 +1780,23 @@ function makeHighFiveStage(dramatic){
   cracks.setAttribute('viewBox','0 0 100 100');
   cracks.setAttribute('preserveAspectRatio','none');
   cracks.innerHTML=`
-    <path d="M50 50L43 38L46 27L37 17M43 38L30 40L20 34M46 27L54 19L51 8
-      M50 50L61 43L72 45L83 37M61 43L63 30L72 23M72 45L81 55L94 57
-      M50 50L45 62L34 68L29 82M45 62L51 73L48 91M34 68L20 67L10 75
-      M50 50L59 61L72 64L80 76M59 61L58 75L66 86M72 64L86 62L94 68"/>`;
+  <path d="M50 50L43 38L46 27L37 17M43 38L30 40L20 34M46 27L54 19L51 8
+    M50 50L61 43L72 45L83 37M61 43L63 30L72 23M72 45L81 55L94 57
+    M50 50L45 62L34 68L29 82M45 62L51 73L48 91M34 68L20 67L10 75
+    M50 50L59 61L72 64L80 76M59 61L58 75L66 86M72 64L86 62L94 68"/>
+  ${cheerLevel>=5?`
+    <path d="
+      M50 50L0 0 M50 50L50 0 M50 50L100 0 M50 50L100 50
+      M50 50L100 100 M50 50L50 100 M50 50L0 100 M50 50L0 50
+      M50 50L25 0 M50 50L75 0 M50 50L100 25 M50 50L100 75
+      M50 50L75 100 M50 50L25 100 M50 50L0 75 M50 50L0 25
+      M50 10L63 13L75 25L87 38L90 50L87 63L75 75L63 87L50 90
+      L37 87L25 75L13 63L10 50L13 37L25 25L37 13Z
+      M50 20L61 23L77 39L80 50L77 61L61 77L50 80
+      L39 77L23 61L20 50L23 39L39 23Z
+      M15 20L25 10L35 20L40 30L35 40L25 45L15 40L10 30Z
+      M70 60L80 50L90 60L95 70L90 80L80 85L70 80L65 70Z"/>
+  `:''}`;
 
   const flash=document.createElement('div');
   flash.className='hf-flash';
@@ -1788,9 +1818,11 @@ function makeHighFiveStage(dramatic){
   }
 
   const raisedHand=document.createElement('div');
-  raisedHand.className='hf-raised-hand';
-  raisedHand.textContent='✋';
-  raisedHand.setAttribute('aria-hidden','true');
+raisedHand.className='hf-raised-hand';
+raisedHand.textContent='✋';
+raisedHand.setAttribute('role','button');
+raisedHand.setAttribute('tabindex','0');
+raisedHand.setAttribute('aria-label','Give Zippy a high five');
 
   const thumb=document.createElement('div');
   thumb.className='hf-thumb';
@@ -1806,15 +1838,15 @@ function makeHighFiveStage(dramatic){
   document.body.classList.add('zippy-highfive-active');
   document.body.appendChild(stage);
 
-  return {stage,caption,buddy};
+  return {stage,caption,buddy,raisedHand};
 }
 
 async function startZippyHighFive(){
   const dramatic=Number(S.settings.cheer||0)>=3;
-  const {stage,caption,buddy}=makeHighFiveStage(dramatic);
+  const {stage,caption,buddy,raisedHand}=makeHighFiveStage(dramatic);
   let finished=false;
 
-  buddy.onclick=async()=>{
+  const doHighFive=async()=>{
     if(finished)return;
     finished=true;
 
@@ -1846,6 +1878,15 @@ async function startZippyHighFive(){
     await waitForZippy(850);
     stage.remove();
     document.body.classList.remove('zippy-highfive-active');
+  };
+
+  buddy.onclick=doHighFive;
+  raisedHand.onclick=doHighFive;
+  raisedHand.onkeydown=event=>{
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();
+      doHighFive();
+    }
   };
 }
 
