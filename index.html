@@ -573,12 +573,15 @@ function to24Hour(hour,minute,period){
     String(Number(minute)).padStart(2,'0');
 }
 
-  function timeParts(value){
-  // helper code
-}
+function timeParts(value){
+  const [h = 16, m = 0] =
+    String(value || '16:00').split(':').map(Number);
 
-function to24Hour(hour,minute,period){
-  // helper code
+  return {
+    hour12: h % 12 || 12,
+    minute: m,
+    period: h >= 12 ? 'PM' : 'AM'
+  };
 }
 
   function reminderModal(initial){
