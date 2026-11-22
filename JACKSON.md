@@ -2,14 +2,15 @@
 
 ## Purpose
 
-Jackson is the working feature document for the planner buddy and backup improvements. Changes should be made on the `feature/backup-and-restore` branch before Jackson is merged into `main`.
+Jackson is the working feature document for planner buddy, accessibility/customization, and backup improvements. Changes should be made on the `feature/backup-and-restore` branch before Jackson is merged into `main`.
 
 ## Planner buddy
 
-- Jackson is the default character name.
-- The user can rename Jackson and choose among a few character designs and colors.
-- Jackson may celebrate completed assignments, send reminder speech, and become interactive.
-- Jackson should include emojis, animations, and dancing according to the selected cheer level.
+- The character's default name is **Zippy**; users can rename it.
+- The user can choose among a few character designs and colors.
+- Zippy may celebrate completed assignments, send reminder speech, and become interactive.
+- Zippy should include emojis, animations, and dancing according to the selected cheer level.
+- Zippy must have a black outline and a character color different from the selected background color so it remains visible.
 
 ### Cheer level
 
@@ -25,10 +26,10 @@ Examples:
 
 ## Reminder appearance
 
-- Regular reminder: Jackson appears with a **50% randomized chance**.
+- Regular reminder: Zippy appears with a **50% randomized chance**.
 - The decision should be made once for each assignment for each day, not every time the site is opened or refreshed.
-- An assignment due in **1 day** always shows Jackson.
-- For assignments due in 1 day, Jackson uses urgent but encouraging text.
+- An assignment due in **1 day** always shows Zippy.
+- For assignments due in 1 day, Zippy uses urgent but encouraging text.
 
 Examples:
 
@@ -38,25 +39,56 @@ Examples:
 
 ## Completion celebrations
 
-- When one assignment is completed, Jackson gives a brief congratulatory reaction based on the cheer level.
-- If five assignments are completed in one calendar day, Jackson provides a special celebration.
+- When one assignment is completed, Zippy gives a brief congratulatory reaction based on the cheer level.
+- If five assignments are completed in one calendar day, Zippy provides a special celebration.
 - At cheer levels 3–5, the special celebration includes an interactive high-five: the character holds out a hand and the player taps/clicks the character or screen to complete it.
-- Jackson's completion count resets at local midnight.
+- Zippy's completion count resets at local midnight.
 
 ## Randomness and reduced motion
 
-- Jackson's 50% random appearance should use a stable per-day/per-assignment result.
+- Zippy's 50% random appearance should use a stable per-day/per-assignment result.
 - Reopening or refreshing the app should not reroll that day's result.
 - Respect the browser's reduced-motion setting.
 - When reduced motion is enabled, replace dances and movement with static or fade/scale reactions.
 
 ## Email and reminder integration
 
-- Jackson's chosen name and cheer level are included in notification content where appropriate.
-- Jackson's randomized on-site appearance rules do not need to change plain email delivery.
+- Zippy's chosen name and cheer level are included in notification content where appropriate.
+- Zippy's randomized on-site appearance rules do not need to change plain email delivery.
 - Emails use text and emoji supported by the app.
 - Interactive animations cannot exist inside an email; the email should link back to the planner.
 - Email copy should preserve urgency for assignments due tomorrow without adding unnecessary pressure.
+
+## Customize
+
+All interface personalization controls should be grouped under a clearly labeled **Customize** header in Settings.
+
+### Font and readability
+
+- Offer five font options: **Atkinson Hyperlegible**, **OpenDyslexic**, **Lexend**, **Andika**, and **Comic Neue**.
+- Include a preview/sample for each option.
+- Render each font's title/name in that font itself.
+- Apply the selected font consistently to planner text and controls, while keeping readable fallbacks if a font cannot load.
+
+### Background
+
+- Keep every existing gradient/wallpaper color option; do not replace or remove them.
+- Provide two background tabs: **Solid colors** and the existing gradient/color style options.
+- Add 20 distinct solid background color choices.
+
+### Text and bubbles
+
+- Add a 10-step text-size slider: setting 1 is smallest, 5 is normal, and 10 is largest.
+- Allow bold text to be toggled.
+- Allow text color selection using the same palette options as backgrounds.
+- The text color must differ from both the background color and the bubble color.
+- Bubble color can match or differ from the background, but must differ from the text color.
+- Bubble dimensions and layout must adapt to the selected text size so content remains legible and does not clip.
+
+### Character appearance
+
+- Allow customization of Zippy's color.
+- Prevent selecting the same character and background color; maintain the black outline for contrast.
 
 ## Backup and restore
 
