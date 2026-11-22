@@ -1881,18 +1881,20 @@ async function startZippyHighFive(){
     document.body.classList.remove('zippy-highfive-active');
   };
 
-  buddy.onclick=doHighFive;
-raisedHand.onclick=()=>{
-  raisedHand.style.display='none';
+ buddy.onclick=doHighFive;
+
+const tapHighFiveHand=()=>{
+  raisedHand.remove();
   doHighFive();
 };
-  raisedHand.onkeydown=event=>{
-    if(event.key==='Enter'||event.key===' '){
-      event.preventDefault();
-      doHighFive();
-    }
-  };
-}
+
+raisedHand.onclick=tapHighFiveHand;
+raisedHand.onkeydown=event=>{
+  if(event.key==='Enter'||event.key===' '){
+    event.preventDefault();
+    tapHighFiveHand();
+  }
+};
 
 function openZippyMenu(){
   zippySpeak(
