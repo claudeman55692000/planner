@@ -48,12 +48,56 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
 .toast{background:#111827;color:#fff;padding:12px 16px;border-radius:14px;max-width:92%;box-shadow:0 6px 18px rgba(0,0,0,.35);pointer-events:auto}
 .empty{text-align:center;color:#4b5563;padding:10px}
 .zippy-dock{position:fixed;right:18px;bottom:18px;z-index:45;display:flex;align-items:flex-end;gap:10px}
-.zippy-face{width:76px;height:76px;padding:0;border:4px solid #111;border-radius:50%;display:grid;place-items:center;font-size:42px;box-shadow:0 6px 18px #0004}
+.zippy-face{width:76px;height:76px;padding:0;border:4px solid #111;border-radius:50%;display:grid;place-items:center;font-size:42px;box-shadow:0 6px 18px #0004;overflow:visible}
 .zippy-bubble{max-width:min(260px,calc(100vw - 130px));padding:12px 14px;border:2px solid #111;border-radius:16px;background:#fff;color:#111;box-shadow:0 6px 18px #0003;font-size:14px}
 .zippy-bubble[hidden]{display:none}
 .zippy-dock.is-speaking .zippy-face{animation:zippy-bounce var(--zippy-bounce-duration,.55s) ease-in-out 2}
+.zippy-face .buddy-art{width:64px;height:64px;display:block;overflow:visible}
+.buddy-settings{border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:8px 0 16px;background:#fafaff}
+.buddy-settings h4{font-size:17px;margin:0 0 12px;color:#312e81}
+.buddy-section-title{margin:10px 0 6px;font-size:14px;font-weight:700;color:#374151}
+.buddy-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.box .buddy-option{width:auto;margin:0;padding:7px;display:flex;align-items:center;gap:8px;text-align:left;background:#f3f4f6;border:2px solid transparent;min-width:0}
+.box .buddy-option.selected{border-color:var(--acc);background:#eef2ff}
+.buddy-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
+.buddy-option .buddy-art{width:44px;height:44px;flex:none}
+.buddy-option-name{font-size:12px;font-weight:650;line-height:1.2}
+.buddy-emoji{font-size:34px;width:44px;flex:none;text-align:center}
+
+/* Character animation layers */
+.buddy-art{transform-origin:50% 70%;animation:buddy-idle 2.4s ease-in-out infinite}
+.buddy-art.motion-1{animation-duration:2.9s}
+.buddy-art.motion-2{animation-name:buddy-sway;animation-duration:2.2s}
+.buddy-art.motion-3{animation-name:buddy-pulse;animation-duration:2.6s}
+.buddy-art .buddy-aura{transform-box:fill-box;transform-origin:center;animation:aura-pulse 2.2s ease-in-out infinite}
+.buddy-art .buddy-spark{transform-box:fill-box;transform-origin:center;animation:sparkle 1.8s ease-in-out infinite}
+.buddy-art .buddy-spark.delay{animation-delay:.9s}
+.buddy-art .buddy-hair{transform-box:fill-box;transform-origin:50% 100%;animation:hair-sway 2.8s ease-in-out infinite}
+.buddy-art .buddy-body{transform-box:fill-box;transform-origin:50% 100%;animation:body-breathe 2.7s ease-in-out infinite}
+.buddy-art .buddy-arm{transform-box:fill-box;transform-origin:50% 15%;animation:arm-sway 2.1s ease-in-out infinite}
+.buddy-art .buddy-sword{transform-box:view-box;transform-origin:78px 57px;animation:sword-float 2.3s ease-in-out infinite}
+.buddy-art .buddy-sword-glow{animation:sword-glow 1.6s ease-in-out infinite}
+.buddy-art .buddy-blink{animation:eye-blink 4.7s linear infinite}
+.buddy-art.villain .buddy-aura{animation-duration:3.1s}
+.buddy-art.villain .buddy-spark{animation-duration:2.4s}
+.buddy-art.animal .buddy-body{animation-duration:2s}
+.buddy-option:hover .buddy-art{animation-duration:.7s}
+.zippy-dock.is-speaking .zippy-face .buddy-art{animation-duration:.55s}
+.zippy-dock.is-speaking .zippy-face .buddy-sword{animation-duration:.6s}
+@keyframes buddy-idle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-1deg)}}
+@keyframes buddy-sway{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-2px) rotate(-4deg)}70%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes buddy-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+@keyframes aura-pulse{0%,100%{opacity:.18;transform:scale(.92)}50%{opacity:.55;transform:scale(1.08)}}
+@keyframes sparkle{0%,100%{opacity:.25;transform:scale(.55) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+@keyframes hair-sway{0%,100%{transform:rotate(0)}35%{transform:rotate(-3deg)}70%{transform:rotate(2deg)}}
+@keyframes body-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.035)}}
+@keyframes arm-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+@keyframes sword-float{0%,100%{transform:rotate(25deg) translateY(0)}50%{transform:rotate(20deg) translateY(-4px)}}
+@keyframes sword-glow{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes eye-blink{0%,46%,50%,100%{opacity:0}47%,49%{opacity:1}}
 @keyframes zippy-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px) rotate(-5deg)}}
-@media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face{animation:none}}
+@media(max-width:380px){.buddy-picker{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face,.buddy-art,.buddy-art *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -79,6 +123,46 @@ const WALLS=[
   ['Candy','linear-gradient(135deg,#f472b6,#a78bfa)'],
   ['Lime','linear-gradient(135deg,#a3e635,#22d3ee)'],
   ['Slate','linear-gradient(135deg,#334155,#0f172a)']
+];
+
+const BUDDIES=[
+  {id:'😀',name:'Happy',group:'Emoji',emoji:'😀'},
+  {id:'🤓',name:'Smart',group:'Emoji',emoji:'🤓'},
+  {id:'🦊',name:'Fox',group:'Emoji',emoji:'🦊'},
+  {id:'🐻',name:'Bear',group:'Emoji',emoji:'🐻'},
+
+  {id:'hero-aster',name:'Aster Dawnblade',group:'Heroes',skin:'#ffd6c9',hair:'#f5b942',eyes:'#3158c9',style:0,sword:'#69e6ff'},
+  {id:'hero-nyra',name:'Nyra Starfall',group:'Heroes',skin:'#f3c7b5',hair:'#a86bea',eyes:'#52d6d0',style:1,sword:'#d9a7ff'},
+  {id:'hero-kael',name:'Kael Ironcomet',group:'Heroes',skin:'#d99c78',hair:'#25324d',eyes:'#ffcf56',style:2,sword:'#ffd166'},
+  {id:'hero-mira',name:'Mira Suncrest',group:'Heroes',skin:'#f6d2b7',hair:'#ed7255',eyes:'#5ad2a5',style:3,sword:'#fff09a'},
+  {id:'hero-orin',name:'Orin Cloudstep',group:'Heroes',skin:'#e6b79f',hair:'#70c8e8',eyes:'#586ce0',style:4},
+  {id:'hero-sable',name:'Sable Moonward',group:'Heroes',skin:'#bd8b79',hair:'#26243e',eyes:'#c4a0ff',style:1,sword:'#a8a4ff'},
+  {id:'hero-ren',name:'Ren Emberguard',group:'Heroes',skin:'#f2c5a5',hair:'#db543f',eyes:'#5a9ee8',style:2,sword:'#ff8b54'},
+  {id:'hero-tavi',name:'Tavi Greenflare',group:'Heroes',skin:'#d69b80',hair:'#3b9c68',eyes:'#eddb70',style:3},
+  {id:'hero-luma',name:'Luma Prismheart',group:'Heroes',skin:'#f4d0c2',hair:'#ed83b8',eyes:'#60b9ee',style:0,sword:'#ff9bd1'},
+  {id:'hero-bryn',name:'Bryn Stormforge',group:'Heroes',skin:'#c58d78',hair:'#596779',eyes:'#8be5df',style:4,sword:'#a9eaff'},
+
+  {id:'villain-vexa',name:'Vexa Nightglass',group:'Villains',skin:'#d7b5c9',hair:'#39264f',eyes:'#ff5d9e',style:1,sword:'#ff4f91'},
+  {id:'villain-draik',name:'Draik Riftcrown',group:'Villains',skin:'#c69282',hair:'#202638',eyes:'#ff704d',style:2,sword:'#ff675e'},
+  {id:'villain-velora',name:'Velora Thornveil',group:'Villains',skin:'#e5b6b1',hair:'#772f60',eyes:'#bd78ff',style:3,sword:'#bb72ff'},
+  {id:'villain-korr',name:'Korr Ashenfang',group:'Villains',skin:'#a97868',hair:'#39414c',eyes:'#f3c94e',style:4,sword:'#f3c94e'},
+  {id:'villain-nyx',name:'Nyx Voidwhisper',group:'Villains',skin:'#c99aaa',hair:'#292342',eyes:'#9b83ff',style:0},
+  {id:'villain-rix',name:'Rix Cinderclaw',group:'Villains',skin:'#dbab90',hair:'#a94636',eyes:'#ffdb5c',style:2,sword:'#ff9b52'},
+  {id:'villain-morwen',name:'Morwen Duskthorn',group:'Villains',skin:'#d6a8a8',hair:'#56344d',eyes:'#77d9bd',style:1,sword:'#76e3ca'},
+  {id:'villain-zarek',name:'Zarek Blackstar',group:'Villains',skin:'#bd887c',hair:'#202a40',eyes:'#ff6380',style:4,sword:'#fb5579'},
+  {id:'villain-iskra',name:'Iskra Stormhex',group:'Villains',skin:'#e9c0a9',hair:'#7752a0',eyes:'#62c8ff',style:3,sword:'#65cfff'},
+  {id:'villain-umbra',name:'Umbra Crownfall',group:'Villains',skin:'#b9898a',hair:'#31233e',eyes:'#f08bff',style:0,sword:'#d78aff'},
+
+  {id:'animal-fox',name:'Emberfox',group:'Animals',animal:'fox',fur:'#f08a45',eyes:'#57d6c1',style:0},
+  {id:'animal-cat',name:'Comet Cat',group:'Animals',animal:'cat',fur:'#b78bea',eyes:'#f6d45b',style:1},
+  {id:'animal-bear',name:'Moss Bear',group:'Animals',animal:'bear',fur:'#a87556',eyes:'#8ee0ad',style:2},
+  {id:'animal-rabbit',name:'Moon Rabbit',group:'Animals',animal:'rabbit',fur:'#e8d8ec',eyes:'#63bce9',style:3},
+  {id:'animal-owl',name:'Pocket Owl',group:'Animals',animal:'owl',fur:'#c98c55',eyes:'#f5ce64',style:4},
+  {id:'animal-frog',name:'Jade Hopper',group:'Animals',animal:'frog',fur:'#61ba78',eyes:'#ffe27a',style:0},
+  {id:'animal-otter',name:'River Otter',group:'Animals',animal:'otter',fur:'#a87558',eyes:'#73d5dd',style:1},
+  {id:'animal-penguin',name:'Pepper Penguin',group:'Animals',animal:'penguin',fur:'#526783',eyes:'#ffc867',style:2},
+  {id:'animal-deer',name:'Starling Deer',group:'Animals',animal:'deer',fur:'#c98b62',eyes:'#78d6a2',style:3},
+  {id:'animal-tiger',name:'Solar Tiger',group:'Animals',animal:'tiger',fur:'#ed9d3e',eyes:'#72c9ef',style:4}
 ];
 
 function defaultData(){
@@ -229,6 +313,107 @@ function prettyDate(date){
     month:'short',
     day:'numeric'
   });
+}
+
+/* ---------- original character artwork ---------- */
+function buddyArtwork(id){
+  const buddy=BUDDIES.find(item=>item.id===id);
+  if(!buddy||buddy.emoji)return '';
+
+  const motion=buddy.style%4;
+  const animal=buddy.animal;
+  const fur=buddy.fur||buddy.skin;
+  const hair=buddy.hair||fur;
+  const eyes=buddy.eyes||'#5367d5';
+  const characterType=animal?'animal':buddy.group.toLowerCase();
+  const outfit=buddy.group==='Villains'?'#453750':buddy.group==='Heroes'?'#465a9d':'#5867c9';
+
+  let ears='';
+  if(animal==='rabbit'){
+    ears='<path d="M37 34Q25 2 34 4Q45 4 46 33M54 33Q56 3 66 8Q74 13 62 35" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><path d="M37 27Q33 10 36 10M59 27Q62 12 65 13" fill="none" stroke="#f8b8c5" stroke-width="4"/>';
+  }else if(animal==='bear'||animal==='otter'){
+    ears='<circle cx="29" cy="31" r="10" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><circle cx="71" cy="31" r="10" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='owl'){
+    ears='<path d="M30 36L34 16L45 31M70 36L66 16L55 31" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='frog'){
+    ears='<circle cx="34" cy="27" r="12" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><circle cx="66" cy="27" r="12" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='deer'){
+    ears='<path d="M34 37L24 25L14 17L22 30L15 34M66 37L76 25L86 17L78 30L85 34" fill="none" stroke="'+fur+'" stroke-width="6" stroke-linecap="round"/><path d="M39 25L35 12M61 25L65 12" stroke="'+fur+'" stroke-width="4" stroke-linecap="round"/>';
+  }else{
+    ears='<path d="M29 40L28 16L47 33M71 40L72 16L53 33" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }
+
+  let animalFace='';
+  if(animal==='penguin'){
+    animalFace='<ellipse cx="50" cy="61" rx="18" ry="17" fill="#f8f4e9"/><path d="M45 59L50 64L55 59Z" fill="#f2a83b"/>';
+  }else if(animal){
+    animalFace='<ellipse cx="50" cy="62" rx="12" ry="9" fill="'+(animal==='fox'||animal==='tiger'?'#f8d7b9':'#f3d9c9')+'"/><path d="M47 58L50 61L53 58Z" fill="#583b45"/>';
+    if(animal==='tiger')animalFace+='<path d="M31 49L40 53M69 49L60 53M34 62L41 63M66 62L59 63" stroke="#573345" stroke-width="3" stroke-linecap="round"/>';
+    if(animal==='fox')animalFace+='<path d="M35 57L42 61M65 57L58 61" stroke="#fff1d7" stroke-width="3" stroke-linecap="round"/>';
+    if(animal==='owl')animalFace+='<circle cx="39" cy="53" r="12" fill="#f4e4bc"/><circle cx="61" cy="53" r="12" fill="#f4e4bc"/>';
+  }
+
+  const hairShapes=[
+    '<path d="M24 49Q19 22 38 20Q51 8 64 20Q84 22 76 51L66 39L59 47L51 35L41 47L34 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M23 49Q17 22 35 20L30 12L45 20L54 11L57 21L73 17Q84 32 76 51L66 40L58 46L49 36L40 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M24 48Q20 19 41 20L36 12L49 18L62 11L61 21Q82 20 76 51L67 41L58 46L50 34L41 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M23 49Q18 23 35 20Q50 12 65 20Q83 24 76 51L68 38Q62 48 55 42L50 33L43 45L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M24 49Q20 21 38 20L34 13L48 19L60 12L61 21Q82 22 76 51L66 40L58 45L50 35L41 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>'
+  ];
+
+  const sword=buddy.sword
+    ?'<g class="buddy-sword"><path class="buddy-sword-glow" d="M78 4L91 48L78 63L65 48Z" fill="'+buddy.sword+'" opacity=".35" transform="scale(1.18) translate(-12 -5)"/><g stroke="#33263d" stroke-width="2.5" stroke-linejoin="round"><path d="M78 4L88 49L78 62L68 49Z" fill="'+buddy.sword+'"/><path d="M78 7L78 58" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M66 59L90 59L86 65L70 65Z" fill="#f6c65b"/><path d="M78 65L78 82" stroke="#70452f" stroke-width="6"/><path d="M73 82L83 82L78 91Z" fill="#f6c65b"/></g></g>'
+    :'';
+
+  const head=animal
+    ?'<ellipse cx="50" cy="52" rx="27" ry="29" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>'
+    :'<path d="M50 22Q76 22 76 49L73 64Q68 80 50 82Q32 80 27 64L24 49Q24 22 50 22Z" fill="'+buddy.skin+'" stroke="#33263d" stroke-width="3"/>';
+
+  const faceColor=animal?fur:buddy.skin;
+  const eyesMarkup=
+    '<ellipse cx="40" cy="52" rx="7" ry="9" fill="#fff"/>'+
+    '<ellipse cx="60" cy="52" rx="7" ry="9" fill="#fff"/>'+
+    '<ellipse cx="41" cy="53" rx="4" ry="6" fill="'+eyes+'"/>'+
+    '<ellipse cx="59" cy="53" rx="4" ry="6" fill="'+eyes+'"/>'+
+    '<circle cx="42" cy="51" r="1.7" fill="#fff"/>'+
+    '<circle cx="60" cy="51" r="1.7" fill="#fff"/>'+
+    '<path d="M44 70Q50 75 56 70" fill="none" stroke="#7b4351" stroke-width="2.5" stroke-linecap="round"/>'+
+    '<g class="buddy-blink" fill="none" stroke="'+faceColor+'" stroke-width="9" stroke-linecap="round"><path d="M33 53Q40 60 47 53M53 53Q60 60 67 53"/></g>';
+
+  let accessory='';
+  if(!animal&&buddy.group==='Heroes'){
+    accessory='<path d="M35 30L50 13L65 30L58 27L50 32L42 27Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/><circle cx="50" cy="23" r="3" fill="#fff4b8"/>';
+  }else if(!animal&&buddy.group==='Villains'){
+    accessory='<path d="M32 29L28 13L42 23L50 10L58 23L72 13L68 31Q50 23 32 31Z" fill="#59426f" stroke="#33263d" stroke-width="2.5"/><circle cx="50" cy="24" r="3" fill="'+eyes+'"/>';
+  }
+
+  const bodyMark=!animal
+    ?(buddy.group==='Villains'
+      ?'<path d="M50 83L55 89L50 96L45 89Z" fill="'+eyes+'" stroke="#33263d" stroke-width="2"/>'
+      :'<path d="M50 81L55 87L50 93L45 87Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/>')
+    :'';
+
+  const hair=animal?'':hairShapes[buddy.style];
+  const auraColor=buddy.sword||eyes;
+
+  return '<svg class="buddy-art motion-'+motion+' '+characterType+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
+    +'<g class="buddy-aura" fill="none" stroke="'+auraColor+'" stroke-width="2"><circle cx="50" cy="52" r="43" stroke-dasharray="4 7"/><path d="M50 3L53 10L50 17L47 10Z" fill="'+auraColor+'"/><path d="M8 53L15 50L22 53L15 56Z" fill="'+auraColor+'"/></g>'
+    +'<path class="buddy-spark" d="M15 37L18 44L25 47L18 50L15 57L12 50L5 47L12 44Z" fill="#fff6a8"/>'
+    +'<path class="buddy-spark delay" d="M83 31L86 37L92 40L86 43L83 49L80 43L74 40L80 37Z" fill="'+auraColor+'"/>'
+    +'<g class="buddy-body"><path d="M21 98Q23 77 50 76Q77 77 79 98Z" fill="'+outfit+'" stroke="#33263d" stroke-width="3"/><path d="M40 79L50 91L60 79" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>'+bodyMark+'</g>'
+    +'<g class="buddy-arm"><path d="M24 83L14 93M76 83L86 93" stroke="'+outfit+'" stroke-width="9" stroke-linecap="round"/><circle cx="14" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/><circle cx="86" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/></g>'
+    +sword+ears+head
+    +(animal?'':'<g class="buddy-hair">'+hair+'</g>')
+    +accessory+eyesMarkup+animalFace
+    +'</svg>';
+}
+
+function buddyPreview(id){
+  const buddy=BUDDIES.find(item=>item.id===id);
+  if(buddy&&buddy.emoji){
+    return '<span class="buddy-emoji" aria-hidden="true">'+buddy.emoji+'</span>';
+  }
+  return buddyArtwork(id);
 }
 
 /* ---------- wallpaper ---------- */
@@ -504,17 +689,17 @@ function settingsModal(){
 
     box.innerHTML=`<h3>Settings</h3>
     <label>Your name</label><input type="text" id="s_name" value="${esc(S.settings.name||'')}">
-    <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName)}">
-    <label>Zippy's color</label><input type="color" id="s_buddy_color" value="${esc(S.settings.buddyColor)}">
-    <label>Zippy's character</label>
-    <select id="s_buddy_design">
-      <option value="😀" ${S.settings.buddyDesign==='😀'?'selected':''}>Happy</option>
-      <option value="🤓" ${S.settings.buddyDesign==='🤓'?'selected':''}>Smart</option>
-      <option value="🦊" ${S.settings.buddyDesign==='🦊'?'selected':''}>Fox</option>
-      <option value="🐻" ${S.settings.buddyDesign==='🐻'?'selected':''}>Bear</option>
-    </select>
-    <label>Zippy cheer level: <span id="s_cheer_value">${S.settings.cheer}</span></label>
-    <input type="range" id="s_cheer" min="0" max="5" value="${S.settings.cheer}">
+
+    <section class="buddy-settings" aria-labelledby="buddy-settings-title">
+      <h4 id="buddy-settings-title">Zippy</h4>
+      <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName)}">
+      <label>Zippy's color</label><input type="color" id="s_buddy_color" value="${esc(S.settings.buddyColor)}">
+      <label>Choose Zippy's look</label>
+      <div id="s_buddy_choices"></div>
+      <label>Zippy cheer level: <span id="s_cheer_value">${S.settings.cheer}</span></label>
+      <input type="range" id="s_cheer" min="0" max="5" value="${S.settings.cheer}">
+    </section>
+
     <label>Wallpaper</label>
     <div class="walls">${WALLS.map((wall,index)=>`<button data-w="${index}" style="background:${wall[1]}" title="${wall[0]}" aria-label="${wall[0]}"></button>`).join('')}</div>
     <label>Custom color</label><input type="color" id="s_col" style="width:100%;height:44px;border:0;margin-bottom:10px">
@@ -530,6 +715,29 @@ function settingsModal(){
     <button class="pri" id="s_ok">Done</button>`;
 
     const get=id=>box.querySelector('#'+id);
+
+    function drawBuddyChoices(){
+      const groups=['Emoji','Heroes','Villains','Animals'];
+      get('s_buddy_choices').innerHTML=groups.map(group=>
+        '<div class="buddy-section-title">'+group+'</div>'+
+        '<div class="buddy-picker">'+BUDDIES.filter(item=>item.group===group).map(item=>
+          '<button type="button" class="buddy-option '+(S.settings.buddyDesign===item.id?'selected':'')+'" data-buddy="'+esc(item.id)+'" aria-pressed="'+(S.settings.buddyDesign===item.id)+'">'+
+            buddyPreview(item.id)+
+            '<span class="buddy-option-name">'+esc(item.name)+'</span>'+
+          '</button>'
+        ).join('')+'</div>'
+      ).join('');
+
+      get('s_buddy_choices').querySelectorAll('[data-buddy]').forEach(button=>{
+        button.onclick=()=>{
+          S.settings.buddyDesign=button.dataset.buddy;
+          save();
+          updateZippy();
+          drawBuddyChoices();
+        };
+      });
+    }
+    drawBuddyChoices();
 
     box.querySelectorAll('[data-w]').forEach(button=>{
       button.onclick=()=>{
@@ -589,12 +797,6 @@ function settingsModal(){
 
     get('s_buddy_color').oninput=event=>{
       S.settings.buddyColor=event.target.value;
-      save();
-      updateZippy();
-    };
-
-    get('s_buddy_design').onchange=event=>{
-      S.settings.buddyDesign=event.target.value;
       save();
       updateZippy();
     };
@@ -770,7 +972,15 @@ function updateZippy(){
   const face=document.getElementById('zippy-face');
   if(!face)return;
 
-  face.textContent=S.settings.buddyDesign||'😀';
+  const design=S.settings.buddyDesign||'😀';
+  const buddy=BUDDIES.find(item=>item.id===design);
+
+  if(buddy&&!buddy.emoji){
+    face.innerHTML=buddyArtwork(design);
+  }else{
+    face.textContent=buddy&&buddy.emoji?buddy.emoji:'😀';
+  }
+
   face.style.backgroundColor=S.settings.buddyColor||'#ffd84d';
   face.setAttribute('aria-label','Talk to '+(S.settings.buddyName||'Zippy'));
 }
