@@ -232,7 +232,7 @@ function settingsModal(){
     <label>Wallpaper</label>
     <div class="walls">${WALLS.map((w,i)=>`<button data-w="${i}" style="background:${w[1]}" title="${w[0]}"></button>`).join('')}</div>
     <label>Custom color</label><input type="color" id="s_col" style="width:100%;height:44px;border:0;margin-bottom:10px">
-    <label>Your own picture</label><input type="file" accept="image/*" id="s_img" style="margin-bottom:10px">
+    <label>Your own picture</label><input type="file" accept="image/*" id="s_img" style="margin-bottom:10px"> <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName||'Zippy')}"> <label>Zippy's color</label><input type="color" id="s_buddy_color" value="${esc(S.settings.buddyColor||'#ffd84d')}"> <label>Zippy's character</label><select id="s_buddy_design"> <option value="😀" ${S.settings.buddyDesign==='😀'?'selected':''}>Happy</option> <option value="🤓" ${S.settings.buddyDesign==='🤓'?'selected':''}>Smart</option> <option value="🦊" ${S.settings.buddyDesign==='🦊'?'selected':''}>Fox</option> <option value="🐻" ${S.settings.buddyDesign==='🐻'?'selected':''}>Bear</option> </select> <label>Zippy cheer level: <span id="s_cheer_value">${S.settings.cheer??3}</span></label> <input type="range" id="s_cheer" min="0" max="5" value="${S.settings.cheer??3}">
     <label>Daily reminder time</label><input type="time" id="s_time" value="${esc(S.settings.time)}">
     <label>GitHub sync: your repo (username/repo-name)</label><input type="text" id="s_repo" placeholder="yourname/planner" value="${esc(syncCfg().repo||'')}">
     <label>GitHub token</label><input type="password" id="s_tok" placeholder="paste token" value="${esc(syncCfg().token||'')}">
@@ -254,6 +254,10 @@ function settingsModal(){
       r.readAsDataURL(f);
     };
     g('s_name').onchange=e=>{const v=e.target.value.trim();if(v){S.settings.name=v;save();render()}};
+   g('s_buddy').onchange=e=>{S.settings.buddyName=e.target.value.trim()||'Zippy';save();render()};
+g('s_buddy_color').oninput=e=>{S.settings.buddyColor=e.target.value;save()};
+g('s_buddy_design').onchange=e=>{S.settings.buddyDesign=e.target.value;save()};
+g('s_cheer').oninput=e=>{S.settings.cheer=Number(e.target.value);g('s_cheer_value').textContent=e.target.value;save()};
    g('s_buddy').onchange=e=>{S.settings.buddyName=e.target.value.trim()||'Zippy';save()};
     g('s_time').onchange=e=>{S.settings.time=e.target.value||'16:00';save();checkReminders()};
     g('s_n').onclick=async()=>{
