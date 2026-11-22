@@ -5,10 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#4f46e5">
 <title>Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=Comic+Neue:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <style>
-:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626}
+:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626;--planner-font:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+body{margin:0;font-family:var(--planner-font,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif);color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+button,input,select,textarea{font-family:inherit}
 #app{max-width:640px;margin:0 auto;padding:16px 14px 100px}
 h1{margin:0;font-size:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.35)}
 h2{font-size:18px;margin:0 0 10px}
@@ -57,6 +62,12 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
 .buddy-settings h4{font-size:17px;margin:0 0 12px;color:#312e81}
 .buddy-section-title{margin:10px 0 6px;font-size:14px;font-weight:700;color:#374151}
 .buddy-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.font-picker{display:grid;gap:8px;margin:6px 0 12px}
+.box .font-option{width:100%;margin:0;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#f3f4f6;border:2px solid transparent}
+.box .font-option.selected{border-color:var(--acc);background:#eef2ff}
+.font-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
+.font-option-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.font-option-preview{font-size:16px;line-height:1.4;color:#374151}
 .box .buddy-option{width:auto;margin:0;padding:7px;display:flex;align-items:center;gap:8px;text-align:left;background:#f3f4f6;border:2px solid transparent;min-width:0}
 .box .buddy-option.selected{border-color:var(--acc);background:#eef2ff}
 .buddy-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
@@ -125,6 +136,14 @@ const WALLS=[
   ['Slate','linear-gradient(135deg,#334155,#0f172a)']
 ];
 
+const FONTS=[
+  {id:'atkinson',name:'Atkinson Hyperlegible',stack:'"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'opendyslexic',name:'OpenDyslexic',stack:'"OpenDyslexic","Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'lexend',name:'Lexend',stack:'"Lexend","Trebuchet MS",Arial,sans-serif'},
+  {id:'andika',name:'Andika',stack:'"Andika","Trebuchet MS",Arial,sans-serif'},
+  {id:'comic-neue',name:'Comic Neue',stack:'"Comic Neue","Comic Sans MS",cursive,sans-serif'}
+];
+
 const BUDDIES=[
   {id:'😀',name:'Happy',group:'Emoji',emoji:'😀'},
   {id:'🤓',name:'Smart',group:'Emoji',emoji:'🤓'},
@@ -175,19 +194,39 @@ function defaultData(){
       buddyName:'Zippy',
       buddyColor:'#ffd84d',
       buddyDesign:'😀',
-      cheer:3
+      cheer:3,
+      font:'atkinson'
     }
   };
 }
+function normalizeReminder(assignment,defaultTime='16:00'){
+  const source=assignment&&assignment.reminder&&typeof assignment.reminder==='object'
+    ?assignment.reminder:{};
 
+  return {
+    enabled:source.enabled!==false,
+    mode:source.mode==='custom'?'custom':'default',
+    time:/^\d{2}:\d{2}$/.test(source.time||'')?source.time:defaultTime,
+    dates:Array.isArray(source.dates)
+      ?[...new Set(source.dates.filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))].sort()
+      :[],
+    after:['daily','default','stop'].includes(source.after)?source.after:'default'
+  };
+}
+
+function normalizeAssignment(assignment,defaultTime){
+  const item=assignment&&typeof assignment==='object'?assignment:{};
+  return {...item,reminder:normalizeReminder(item,defaultTime)};
+}
 function normalizeData(data){
   const defaults=defaultData();
   const source=data&&typeof data==='object'?data:{};
   const settings=source.settings&&typeof source.settings==='object'?source.settings:{};
+  const validFont=FONTS.some(font=>font.id===settings.font)?settings.font:defaults.settings.font;
   return {
     ...source,
     classes:Array.isArray(source.classes)?source.classes:[],
-    assignments:Array.isArray(source.assignments)?source.assignments:[],
+    assignments:Array.isArray(source.assignments)   ?source.assignments.map(item=>normalizeAssignment(item,settings.time||defaults.settings.time))   :[],
     settings:{
       ...defaults.settings,
       ...settings,
@@ -196,7 +235,8 @@ function normalizeData(data){
       buddyName:settings.buddyName||defaults.settings.buddyName,
       buddyColor:settings.buddyColor||defaults.settings.buddyColor,
       buddyDesign:settings.buddyDesign||defaults.settings.buddyDesign,
-      cheer:Number.isFinite(Number(settings.cheer))?Number(settings.cheer):defaults.settings.cheer
+      cheer:Number.isFinite(Number(settings.cheer))?Number(settings.cheer):defaults.settings.cheer,
+      font:validFont
     }
   };
 }
@@ -214,6 +254,11 @@ let view='home';
 let filter='active';
 let syncTimer;
 let zippyTimer;
+
+function applyFont(){
+  const selected=FONTS.find(font=>font.id===S.settings.font)||FONTS[0];
+  document.documentElement.style.setProperty('--planner-font',selected.stack);
+}
 
 function save(){
   try{
@@ -263,7 +308,7 @@ async function syncNow(verbose){
       name:S.settings.name,
       classes:S.classes,
       assignments:S.assignments,
-      settings:{time:S.settings.time},
+      settings:{time:S.settings.time,font:S.settings.font},
       updated:new Date().toISOString()
     };
     const body={
@@ -492,15 +537,248 @@ function ask(title,placeholder,initial=''){
 
 function dateModal(initial){
   return modal((box,close)=>{
-    box.innerHTML=`<h3>When is it due?</h3><input type="date" value="${esc(initial||'')}"><button class="pri">Save date</button><button class="ok">N/A: remind me daily until I turn it off</button><button class="danger">Cancel</button>`;
+    box.innerHTML=`<h3>When is it due?</h3>
+      <input type="date" value="${esc(initial||'')}">
+      <button class="pri">Save date</button>
+      <button class="ok">Custom time</button>
+      <button>No due date</button>
+      <button class="danger">Cancel</button>`;
+
     const input=box.querySelector('input');
-    const [saveDate,noDate,cancel]=box.querySelectorAll('button');
-    saveDate.onclick=()=>{if(input.value)close(input.value);else input.focus()};
+    const [saveDate,customTime,noDate,cancel]=box.querySelectorAll('button');
+
+    saveDate.onclick=()=>{
+      if(input.value)close(input.value);
+      else input.focus();
+    };
+
+    customTime.onclick=()=>close('CUSTOM');
     noDate.onclick=()=>close('NA');
     cancel.onclick=()=>close(null);
   });
 }
+  
+  function timeParts(value){
+  const [hour,minute]=String(value||'16:00').split(':').map(Number);
+  return {
+    hour12:hour%12||12,
+    minute:Math.round(minute/10)*10%60,
+    period:hour>=12?'PM':'AM'
+  };
+}
 
+function to24Hour(hour,minute,period){
+  const hours=(Number(hour)%12)+(period==='PM'?12:0);
+  return String(hours).padStart(2,'0')+':'+
+    String(Number(minute)).padStart(2,'0');
+}
+
+function timeParts(value){
+  const [h = 16, m = 0] =
+    String(value || '16:00').split(':').map(Number);
+
+  return {
+    hour12: h % 12 || 12,
+    minute: m,
+    period: h >= 12 ? 'PM' : 'AM'
+  };
+}
+
+  function reminderModal(initial){
+  const reminder=normalizeReminder({reminder:initial},S.settings.time||'16:00');
+
+  return modal((box,close)=>{
+    let mode=reminder.mode;
+    let dates=[...reminder.dates];
+    let after=reminder.after;
+
+    const draw=()=>{
+      const parts=timeParts(reminder.time);
+
+      box.innerHTML=`<h3>Reminder schedule</h3>
+        <p class="small">Choose this assignment's reminder schedule.</p>
+
+        <button type="button" data-mode="default"
+          class="${mode==='default'?'pri':''}">
+          Use default
+        </button>
+
+        <button type="button" data-mode="custom"
+          class="${mode==='custom'?'pri':''}">
+          Custom time
+        </button>
+
+        <div id="default_schedule" ${mode==='default'?'':'hidden'}>
+          <label>Hour</label>
+          <select id="r_hour">
+            ${Array.from({length:12},(_,i)=>i+1).map(hour =>
+              `<option ${hour===parts.hour12?'selected':''}>${hour}</option>`
+            ).join('')}
+          </select>
+
+          <label>Minute</label>
+          <select id="r_minute">
+            ${Array.from({length:6},(_,i)=>i*10).map(minute =>
+              `<option value="${String(minute).padStart(2,'0')}"
+                ${minute===parts.minute?'selected':''}>
+                ${String(minute).padStart(2,'0')}
+              </option>`
+            ).join('')}
+          </select>
+
+          <label>AM/PM</label>
+          <select id="r_period">
+            <option ${parts.period==='AM'?'selected':''}>AM</option>
+            <option ${parts.period==='PM'?'selected':''}>PM</option>
+          </select>
+
+          <p class="small">Uses the device's local clock and time zone.</p>
+        </div>
+
+        <div id="custom_schedule" ${mode==='custom'?'':'hidden'}>
+          <label>Choose reminder dates</label>
+          <input type="date" id="r_date" min="${todayStr()}">
+          <button type="button" id="r_add_date">Add date</button>
+
+          <div id="r_dates"></div>
+
+          <p class="small">
+            <strong>After the final selected custom reminder date:</strong>
+          </p>
+
+          <label>
+            <input type="checkbox" data-after="daily"
+              ${after==='daily'?'checked':''}>
+            After the final day, remind me each day.
+          </label>
+
+          <label>
+            <input type="checkbox" data-after="default"
+              ${after==='default'?'checked':''}>
+            After the final day, remind me on a default schedule.
+          </label>
+
+          <label>
+            <input type="checkbox" data-after="stop"
+              ${after==='stop'?'checked':''}>
+            After the final day, don't remind me anymore on this assignment.
+          </label>
+        </div>
+
+        <button type="button" id="r_disable"
+          style="color:#dc2626;font-weight:700">
+          Don't remind me on this assignment
+        </button>
+
+        <button type="button" class="pri" id="r_continue">
+          Continue
+        </button>
+
+        <button type="button" class="danger" id="r_cancel">
+          Cancel
+        </button>`;
+
+      box.querySelectorAll('[data-mode]').forEach(button=>{
+        button.onclick=()=>{
+          mode=button.dataset.mode;
+          draw();
+        };
+      });
+
+      const hour=box.querySelector('#r_hour');
+      const minute=box.querySelector('#r_minute');
+      const period=box.querySelector('#r_period');
+
+      if(hour&&minute&&period){
+        [hour,minute,period].forEach(select=>{
+          select.onchange=()=>{
+            reminder.time=to24Hour(hour.value,minute.value,period.value);
+          };
+        });
+      }
+
+      const datesBox=box.querySelector('#r_dates');
+
+      if(datesBox){
+        datesBox.innerHTML=dates.length
+          ?dates.map(date=>`
+              <div class="small">
+                ${esc(prettyDate(date))}
+                <button type="button" data-remove-date="${esc(date)}">
+                  Remove
+                </button>
+              </div>
+            `).join('')
+          :'<p class="small">No custom dates selected yet.</p>';
+
+        box.querySelectorAll('[data-remove-date]').forEach(button=>{
+          button.onclick=()=>{
+            dates=dates.filter(date=>date!==button.dataset.removeDate);
+            draw();
+          };
+        });
+
+        box.querySelector('#r_add_date').onclick=()=>{
+          const input=box.querySelector('#r_date');
+
+          if(input.value&&!dates.includes(input.value)){
+            dates.push(input.value);
+            dates.sort();
+            draw();
+          }else{
+            input.focus();
+          }
+        };
+      }
+
+      box.querySelectorAll('[data-after]').forEach(checkbox=>{
+        checkbox.onchange=()=>{
+          after=checkbox.checked?checkbox.dataset.after:null;
+
+          box.querySelectorAll('[data-after]').forEach(option=>{
+            option.checked=option.dataset.after===after;
+          });
+
+          updateContinue();
+        };
+      });
+
+      const updateContinue=()=>{
+        const valid=mode==='default'||(dates.length>0&&after!==null);
+
+        box.querySelector('#r_continue').disabled=!valid;
+      };
+
+      updateContinue();
+
+      box.querySelector('#r_disable').onclick=()=>{
+        const confirmed=confirm(
+          "Is this what you want? You won't get reminders on this assignment."
+        );
+
+        if(confirmed){
+          close({...reminder,enabled:false,mode,dates,after});
+        }
+      };
+
+      box.querySelector('#r_continue').onclick=()=>{
+        if(mode==='custom'&&(!dates.length||after===null))return;
+
+        close({
+          enabled:true,
+          mode,
+          time:reminder.time,
+          dates:mode==='custom'?dates:[],
+          after:mode==='custom'?after:'default'
+        });
+      };
+
+      box.querySelector('#r_cancel').onclick=()=>close(null);
+    };
+
+    draw();
+  });
+}
 /* ---------- classes ---------- */
 async function addClass(){
   const name=await ask('Class name','e.g. Calculus');
@@ -602,8 +880,20 @@ async function newAssignment(){
     subtitle=value;
   }
 
-  const due=await dateModal('');
-  if(!due)return;
+    const dueChoice=await dateModal('');
+  if(!dueChoice)return;
+
+  const due=dueChoice==='NA'||dueChoice==='CUSTOM'?null:dueChoice;
+
+  const initialReminder=normalizeReminder({
+    reminder:{
+      mode:dueChoice==='CUSTOM'?'custom':'default',
+      time:S.settings.time||'16:00'
+    }
+  },S.settings.time||'16:00');
+
+  const reminder=await reminderModal(initialReminder);
+  if(!reminder)return;
 
   S.assignments.push({
     id:uid(),
@@ -611,7 +901,8 @@ async function newAssignment(){
     classId,
     type,
     subtitle,
-    due:due==='NA'?null:due,
+    due,
+    reminder,
     notes:'',
     done:false,
     last:''
@@ -637,14 +928,45 @@ function editAssignment(id){
     <label>Type</label><select id="e_y">${Object.entries(TYPES).map(([value,label])=>`<option value="${value}" ${value===assignment.type?'selected':''}>${label}</option>`).join('')}</select>
     <label>Subtitle (optional)</label><input type="text" id="e_s" value="${esc(assignment.subtitle||'')}">
     <label>Due date</label><input type="date" id="e_d" value="${esc(assignment.due||'')}">
-    <label><input type="checkbox" id="e_n" ${assignment.due?'':'checked'}> No due date (remind me daily)</label>
-    <label style="margin-top:10px">Notes / commentary</label><textarea id="e_o">${esc(assignment.notes||'')}</textarea>
+<label><input type="checkbox" id="e_n" ${assignment.due?'':'checked'}> No due date</label>
+
+<label style="margin-top:10px">Reminder schedule</label>
+<button type="button" id="e_reminder">Configure reminders</button>
+
+<label style="margin-top:10px">Notes / commentary</label><textarea id="e_o">${esc(assignment.notes||'')}</textarea>
     <button class="pri" id="e_save">Save</button>
     <button class="ok" id="e_done">${assignment.done?'Reactivate (turn reminders back on)':'Mark done (turn reminders off)'}</button>
     <button class="danger" id="e_del">Delete</button>
     <button id="e_x">Close</button>`;
 
     const get=id=>box.querySelector('#'+id);
+        let reminderDraft=normalizeReminder(
+      assignment,
+      S.settings.time||'16:00'
+    );
+
+    const updateReminderButton=()=>{
+      if(!reminderDraft.enabled){
+        get('e_reminder').textContent="Don't remind me on this assignment";
+        get('e_reminder').style.color='#dc2626';
+      }else if(reminderDraft.mode==='custom'){
+        get('e_reminder').textContent='Custom time — '+reminderDraft.time;
+        get('e_reminder').style.color='';
+      }else{
+        get('e_reminder').textContent='Use default — '+reminderDraft.time;
+        get('e_reminder').style.color='';
+      }
+    };
+
+    updateReminderButton();
+
+    get('e_reminder').onclick=async()=>{
+      const updated=await reminderModal(reminderDraft);
+      if(updated){
+        reminderDraft=updated;
+        updateReminderButton();
+      }
+    };
 
     get('e_save').onclick=()=>{
       assignment.title=get('e_t').value.trim()||assignment.title;
@@ -652,6 +974,7 @@ function editAssignment(id){
       assignment.type=get('e_y').value;
       assignment.subtitle=get('e_s').value.trim();
       assignment.due=get('e_n').checked?null:(get('e_d').value||null);
+      assignment.reminder=reminderDraft;
       assignment.notes=get('e_o').value;
       assignment.last='';
       save();
@@ -690,6 +1013,19 @@ function settingsModal(){
     box.innerHTML=`<h3>Settings</h3>
     <label>Your name</label><input type="text" id="s_name" value="${esc(S.settings.name||'')}">
 
+    <section class="buddy-settings" aria-labelledby="font-settings-title">
+      <h4 id="font-settings-title">Reading font</h4>
+      <label>Choose a font</label>
+      <div class="font-picker" id="s_font_choices">
+        ${FONTS.map(font=>`
+          <button type="button" class="font-option ${S.settings.font===font.id?'selected':''}" data-font="${font.id}" aria-pressed="${S.settings.font===font.id?'true':'false'}">
+            <span class="font-option-name" style="font-family:${font.stack}">${esc(font.name)}</span>
+            <span class="font-option-preview" style="font-family:${font.stack}">Aa Bb Cc — The quick brown fox jumps over the lazy dog.</span>
+          </button>
+        `).join('')}
+      </div>
+    </section>
+
     <section class="buddy-settings" aria-labelledby="buddy-settings-title">
       <h4 id="buddy-settings-title">Zippy</h4>
       <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName)}">
@@ -715,6 +1051,19 @@ function settingsModal(){
     <button class="pri" id="s_ok">Done</button>`;
 
     const get=id=>box.querySelector('#'+id);
+
+    box.querySelectorAll('[data-font]').forEach(button=>{
+      button.onclick=()=>{
+        S.settings.font=button.dataset.font;
+        save();
+        applyFont();
+        box.querySelectorAll('[data-font]').forEach(option=>{
+          const selected=option.dataset.font===S.settings.font;
+          option.classList.toggle('selected',selected);
+          option.setAttribute('aria-pressed',selected?'true':'false');
+        });
+      };
+    });
 
     function drawBuddyChoices(){
       const groups=['Emoji','Heroes','Villains','Animals'];
@@ -875,6 +1224,7 @@ function settingsModal(){
 
           S=normalizeData(imported);
           save();
+          applyFont();
           applyWall();
           updateZippy();
           close(1);
@@ -938,18 +1288,53 @@ function message(assignment){
   }
 }
 
-function dueToday(){
+function defaultScheduleApplies(assignment){
+  const days=daysUntil(assignment.due);
+  return days===null||(days>=0&&days<=(WINDOW[assignment.type]||3));
+}
+
+function reminderAppliesToday(assignment,today){
+  const reminder=normalizeReminder(
+    assignment,
+    S.settings.time||'16:00'
+  );
+
+  if(assignment.done||!reminder.enabled)return false;
+
+  if(reminder.mode!=='custom'){
+    return defaultScheduleApplies(assignment);
+  }
+
+  if(reminder.dates.includes(today))return true;
+
+  const finalDate=reminder.dates[reminder.dates.length-1];
+  if(!finalDate||today<=finalDate)return false;
+
+  if(reminder.after==='daily')return true;
+  if(reminder.after==='default')return defaultScheduleApplies(assignment);
+  return false;
+}
+
+function reminderTimeHasPassed(assignment){
+  const reminder=normalizeReminder(
+    assignment,
+    S.settings.time||'16:00'
+  );
+
+  const [hour,minute]=reminder.time.split(':').map(Number);
   const now=new Date();
-  const [hour,minute]=(S.settings.time||'16:00').split(':').map(Number);
-  const past=now.getHours()*60+now.getMinutes()>=hour*60+minute;
+  return now.getHours()*60+now.getMinutes()>=hour*60+minute;
+}
+
+function dueToday(){
+  const today=todayStr();
 
   return S.assignments
-    .filter(assignment=>{
-      if(assignment.done)return false;
-      const days=daysUntil(assignment.due);
-      return days===null||(days>=0&&days<=(WINDOW[assignment.type]||3));
-    })
-    .map(assignment=>({a:assignment,past}));
+    .filter(assignment=>reminderAppliesToday(assignment,today))
+    .map(assignment=>({
+      a:assignment,
+      past:reminderTimeHasPassed(assignment)
+    }));
 }
 
 function checkReminders(){
@@ -966,7 +1351,6 @@ function checkReminders(){
 
   if(changed)save();
 }
-
 /* ---------- Zippy ---------- */
 function updateZippy(){
   const face=document.getElementById('zippy-face');
@@ -1146,6 +1530,7 @@ async function ensureName(){
   }
 }
 
+applyFont();
 updateZippy();
 q('zippy-face').onclick=()=>{
   zippySpeak(`Hi! I'm ${S.settings.buddyName||'Zippy'}—you've got this!`);
