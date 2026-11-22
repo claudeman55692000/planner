@@ -5,10 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#4f46e5">
 <title>Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=Comic+Neue:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <style>
-:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626}
+:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626;--planner-font:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+body{margin:0;font-family:var(--planner-font,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif);color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+button,input,select,textarea{font-family:inherit}
 #app{max-width:640px;margin:0 auto;padding:16px 14px 100px}
 h1{margin:0;font-size:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.35)}
 h2{font-size:18px;margin:0 0 10px}
@@ -57,22 +62,53 @@ label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
 .buddy-settings h4{font-size:17px;margin:0 0 12px;color:#312e81}
 .buddy-section-title{margin:10px 0 6px;font-size:14px;font-weight:700;color:#374151}
 .buddy-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.font-picker{display:grid;gap:8px;margin:6px 0 12px}
+.box .font-option{width:100%;margin:0;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#f3f4f6;border:2px solid transparent}
+.box .font-option.selected{border-color:var(--acc);background:#eef2ff}
+.font-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
+.font-option-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.font-option-preview{font-size:16px;line-height:1.4;color:#374151}
 .box .buddy-option{width:auto;margin:0;padding:7px;display:flex;align-items:center;gap:8px;text-align:left;background:#f3f4f6;border:2px solid transparent;min-width:0}
 .box .buddy-option.selected{border-color:var(--acc);background:#eef2ff}
 .buddy-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
 .buddy-option .buddy-art{width:44px;height:44px;flex:none}
 .buddy-option-name{font-size:12px;font-weight:650;line-height:1.2}
 .buddy-emoji{font-size:34px;width:44px;flex:none;text-align:center}
+
+/* Character animation layers */
 .buddy-art{transform-origin:50% 70%;animation:buddy-idle 2.4s ease-in-out infinite}
 .buddy-art.motion-1{animation-duration:2.9s}
 .buddy-art.motion-2{animation-name:buddy-sway;animation-duration:2.2s}
 .buddy-art.motion-3{animation-name:buddy-pulse;animation-duration:2.6s}
-@keyframes buddy-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes buddy-sway{0%,100%{transform:rotate(0)}30%{transform:rotate(-4deg)}70%{transform:rotate(4deg)}}
-@keyframes buddy-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.buddy-art .buddy-aura{transform-box:fill-box;transform-origin:center;animation:aura-pulse 2.2s ease-in-out infinite}
+.buddy-art .buddy-spark{transform-box:fill-box;transform-origin:center;animation:sparkle 1.8s ease-in-out infinite}
+.buddy-art .buddy-spark.delay{animation-delay:.9s}
+.buddy-art .buddy-hair{transform-box:fill-box;transform-origin:50% 100%;animation:hair-sway 2.8s ease-in-out infinite}
+.buddy-art .buddy-body{transform-box:fill-box;transform-origin:50% 100%;animation:body-breathe 2.7s ease-in-out infinite}
+.buddy-art .buddy-arm{transform-box:fill-box;transform-origin:50% 15%;animation:arm-sway 2.1s ease-in-out infinite}
+.buddy-art .buddy-sword{transform-box:view-box;transform-origin:78px 57px;animation:sword-float 2.3s ease-in-out infinite}
+.buddy-art .buddy-sword-glow{animation:sword-glow 1.6s ease-in-out infinite}
+.buddy-art .buddy-blink{animation:eye-blink 4.7s linear infinite}
+.buddy-art.villain .buddy-aura{animation-duration:3.1s}
+.buddy-art.villain .buddy-spark{animation-duration:2.4s}
+.buddy-art.animal .buddy-body{animation-duration:2s}
+.buddy-option:hover .buddy-art{animation-duration:.7s}
+.zippy-dock.is-speaking .zippy-face .buddy-art{animation-duration:.55s}
+.zippy-dock.is-speaking .zippy-face .buddy-sword{animation-duration:.6s}
+@keyframes buddy-idle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-1deg)}}
+@keyframes buddy-sway{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-2px) rotate(-4deg)}70%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes buddy-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+@keyframes aura-pulse{0%,100%{opacity:.18;transform:scale(.92)}50%{opacity:.55;transform:scale(1.08)}}
+@keyframes sparkle{0%,100%{opacity:.25;transform:scale(.55) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+@keyframes hair-sway{0%,100%{transform:rotate(0)}35%{transform:rotate(-3deg)}70%{transform:rotate(2deg)}}
+@keyframes body-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.035)}}
+@keyframes arm-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+@keyframes sword-float{0%,100%{transform:rotate(25deg) translateY(0)}50%{transform:rotate(20deg) translateY(-4px)}}
+@keyframes sword-glow{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes eye-blink{0%,46%,50%,100%{opacity:0}47%,49%{opacity:1}}
 @keyframes zippy-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px) rotate(-5deg)}}
 @media(max-width:380px){.buddy-picker{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face,.buddy-art{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face,.buddy-art,.buddy-art *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -100,14 +136,20 @@ const WALLS=[
   ['Slate','linear-gradient(135deg,#334155,#0f172a)']
 ];
 
+const FONTS=[
+  {id:'atkinson',name:'Atkinson Hyperlegible',stack:'"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'opendyslexic',name:'OpenDyslexic',stack:'"OpenDyslexic","Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'lexend',name:'Lexend',stack:'"Lexend","Trebuchet MS",Arial,sans-serif'},
+  {id:'andika',name:'Andika',stack:'"Andika","Trebuchet MS",Arial,sans-serif'},
+  {id:'comic-neue',name:'Comic Neue',stack:'"Comic Neue","Comic Sans MS",cursive,sans-serif'}
+];
+
 const BUDDIES=[
-  // The original four emoji remain available and keep their existing saved IDs.
   {id:'😀',name:'Happy',group:'Emoji',emoji:'😀'},
   {id:'🤓',name:'Smart',group:'Emoji',emoji:'🤓'},
   {id:'🦊',name:'Fox',group:'Emoji',emoji:'🦊'},
   {id:'🐻',name:'Bear',group:'Emoji',emoji:'🐻'},
 
-  // Ten original anime-inspired heroes.
   {id:'hero-aster',name:'Aster Dawnblade',group:'Heroes',skin:'#ffd6c9',hair:'#f5b942',eyes:'#3158c9',style:0,sword:'#69e6ff'},
   {id:'hero-nyra',name:'Nyra Starfall',group:'Heroes',skin:'#f3c7b5',hair:'#a86bea',eyes:'#52d6d0',style:1,sword:'#d9a7ff'},
   {id:'hero-kael',name:'Kael Ironcomet',group:'Heroes',skin:'#d99c78',hair:'#25324d',eyes:'#ffcf56',style:2,sword:'#ffd166'},
@@ -119,7 +161,6 @@ const BUDDIES=[
   {id:'hero-luma',name:'Luma Prismheart',group:'Heroes',skin:'#f4d0c2',hair:'#ed83b8',eyes:'#60b9ee',style:0,sword:'#ff9bd1'},
   {id:'hero-bryn',name:'Bryn Stormforge',group:'Heroes',skin:'#c58d78',hair:'#596779',eyes:'#8be5df',style:4,sword:'#a9eaff'},
 
-  // Ten original anime-inspired villains.
   {id:'villain-vexa',name:'Vexa Nightglass',group:'Villains',skin:'#d7b5c9',hair:'#39264f',eyes:'#ff5d9e',style:1,sword:'#ff4f91'},
   {id:'villain-draik',name:'Draik Riftcrown',group:'Villains',skin:'#c69282',hair:'#202638',eyes:'#ff704d',style:2,sword:'#ff675e'},
   {id:'villain-velora',name:'Velora Thornveil',group:'Villains',skin:'#e5b6b1',hair:'#772f60',eyes:'#bd78ff',style:3,sword:'#bb72ff'},
@@ -131,7 +172,6 @@ const BUDDIES=[
   {id:'villain-iskra',name:'Iskra Stormhex',group:'Villains',skin:'#e9c0a9',hair:'#7752a0',eyes:'#62c8ff',style:3,sword:'#65cfff'},
   {id:'villain-umbra',name:'Umbra Crownfall',group:'Villains',skin:'#b9898a',hair:'#31233e',eyes:'#f08bff',style:0,sword:'#d78aff'},
 
-  // Ten animal mascots, illustrated as original SVG art.
   {id:'animal-fox',name:'Emberfox',group:'Animals',animal:'fox',fur:'#f08a45',eyes:'#57d6c1',style:0},
   {id:'animal-cat',name:'Comet Cat',group:'Animals',animal:'cat',fur:'#b78bea',eyes:'#f6d45b',style:1},
   {id:'animal-bear',name:'Moss Bear',group:'Animals',animal:'bear',fur:'#a87556',eyes:'#8ee0ad',style:2},
@@ -154,7 +194,8 @@ function defaultData(){
       buddyName:'Zippy',
       buddyColor:'#ffd84d',
       buddyDesign:'😀',
-      cheer:3
+      cheer:3,
+      font:'atkinson'
     }
   };
 }
@@ -163,6 +204,7 @@ function normalizeData(data){
   const defaults=defaultData();
   const source=data&&typeof data==='object'?data:{};
   const settings=source.settings&&typeof source.settings==='object'?source.settings:{};
+  const validFont=FONTS.some(font=>font.id===settings.font)?settings.font:defaults.settings.font;
   return {
     ...source,
     classes:Array.isArray(source.classes)?source.classes:[],
@@ -175,7 +217,8 @@ function normalizeData(data){
       buddyName:settings.buddyName||defaults.settings.buddyName,
       buddyColor:settings.buddyColor||defaults.settings.buddyColor,
       buddyDesign:settings.buddyDesign||defaults.settings.buddyDesign,
-      cheer:Number.isFinite(Number(settings.cheer))?Number(settings.cheer):defaults.settings.cheer
+      cheer:Number.isFinite(Number(settings.cheer))?Number(settings.cheer):defaults.settings.cheer,
+      font:validFont
     }
   };
 }
@@ -193,6 +236,11 @@ let view='home';
 let filter='active';
 let syncTimer;
 let zippyTimer;
+
+function applyFont(){
+  const selected=FONTS.find(font=>font.id===S.settings.font)||FONTS[0];
+  document.documentElement.style.setProperty('--planner-font',selected.stack);
+}
 
 function save(){
   try{
@@ -242,7 +290,7 @@ async function syncNow(verbose){
       name:S.settings.name,
       classes:S.classes,
       assignments:S.assignments,
-      settings:{time:S.settings.time},
+      settings:{time:S.settings.time,font:S.settings.font},
       updated:new Date().toISOString()
     };
     const body={
@@ -304,6 +352,8 @@ function buddyArtwork(id){
   const fur=buddy.fur||buddy.skin;
   const hair=buddy.hair||fur;
   const eyes=buddy.eyes||'#5367d5';
+  const characterType=animal?'animal':buddy.group.toLowerCase();
+  const outfit=buddy.group==='Villains'?'#453750':buddy.group==='Heroes'?'#465a9d':'#5867c9';
 
   let ears='';
   if(animal==='rabbit'){
@@ -320,12 +370,11 @@ function buddyArtwork(id){
     ears='<path d="M29 40L28 16L47 33M71 40L72 16L53 33" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
   }
 
-  const isPenguin=animal==='penguin';
   let animalFace='';
-  if(animal){
-    animalFace=isPenguin
-      ?'<ellipse cx="50" cy="61" rx="18" ry="17" fill="#f8f4e9"/><path d="M45 59L50 64L55 59Z" fill="#f2a83b"/>'
-      :'<ellipse cx="50" cy="62" rx="12" ry="9" fill="'+(animal==='fox'||animal==='tiger'?'#f8d7b9':'#f3d9c9')+'"/><path d="M47 58L50 61L53 58Z" fill="#583b45"/>';
+  if(animal==='penguin'){
+    animalFace='<ellipse cx="50" cy="61" rx="18" ry="17" fill="#f8f4e9"/><path d="M45 59L50 64L55 59Z" fill="#f2a83b"/>';
+  }else if(animal){
+    animalFace='<ellipse cx="50" cy="62" rx="12" ry="9" fill="'+(animal==='fox'||animal==='tiger'?'#f8d7b9':'#f3d9c9')+'"/><path d="M47 58L50 61L53 58Z" fill="#583b45"/>';
     if(animal==='tiger')animalFace+='<path d="M31 49L40 53M69 49L60 53M34 62L41 63M66 62L59 63" stroke="#573345" stroke-width="3" stroke-linecap="round"/>';
     if(animal==='fox')animalFace+='<path d="M35 57L42 61M65 57L58 61" stroke="#fff1d7" stroke-width="3" stroke-linecap="round"/>';
     if(animal==='owl')animalFace+='<circle cx="39" cy="53" r="12" fill="#f4e4bc"/><circle cx="61" cy="53" r="12" fill="#f4e4bc"/>';
@@ -340,13 +389,14 @@ function buddyArtwork(id){
   ];
 
   const sword=buddy.sword
-    ?'<g transform="rotate(25 78 54)" stroke="#33263d" stroke-width="2.5" stroke-linejoin="round"><path d="M78 4L88 49L78 62L68 49Z" fill="'+buddy.sword+'"/><path d="M78 7L78 58" stroke="#fff" stroke-width="2" opacity=".8"/><path d="M66 59L90 59L86 65L70 65Z" fill="#f6c65b"/><path d="M78 65L78 82" stroke="#70452f" stroke-width="6"/><path d="M73 82L83 82L78 91Z" fill="#f6c65b"/></g>'
+    ?'<g class="buddy-sword"><path class="buddy-sword-glow" d="M78 4L91 48L78 63L65 48Z" fill="'+buddy.sword+'" opacity=".35" transform="scale(1.18) translate(-12 -5)"/><g stroke="#33263d" stroke-width="2.5" stroke-linejoin="round"><path d="M78 4L88 49L78 62L68 49Z" fill="'+buddy.sword+'"/><path d="M78 7L78 58" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M66 59L90 59L86 65L70 65Z" fill="#f6c65b"/><path d="M78 65L78 82" stroke="#70452f" stroke-width="6"/><path d="M73 82L83 82L78 91Z" fill="#f6c65b"/></g></g>'
     :'';
 
   const head=animal
     ?'<ellipse cx="50" cy="52" rx="27" ry="29" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>'
     :'<path d="M50 22Q76 22 76 49L73 64Q68 80 50 82Q32 80 27 64L24 49Q24 22 50 22Z" fill="'+buddy.skin+'" stroke="#33263d" stroke-width="3"/>';
 
+  const faceColor=animal?fur:buddy.skin;
   const eyesMarkup=
     '<ellipse cx="40" cy="52" rx="7" ry="9" fill="#fff"/>'+
     '<ellipse cx="60" cy="52" rx="7" ry="9" fill="#fff"/>'+
@@ -354,7 +404,8 @@ function buddyArtwork(id){
     '<ellipse cx="59" cy="53" rx="4" ry="6" fill="'+eyes+'"/>'+
     '<circle cx="42" cy="51" r="1.7" fill="#fff"/>'+
     '<circle cx="60" cy="51" r="1.7" fill="#fff"/>'+
-    '<path d="M44 70Q50 75 56 70" fill="none" stroke="#7b4351" stroke-width="2.5" stroke-linecap="round"/>';
+    '<path d="M44 70Q50 75 56 70" fill="none" stroke="#7b4351" stroke-width="2.5" stroke-linecap="round"/>'+
+    '<g class="buddy-blink" fill="none" stroke="'+faceColor+'" stroke-width="9" stroke-linecap="round"><path d="M33 53Q40 60 47 53M53 53Q60 60 67 53"/></g>';
 
   let accessory='';
   if(!animal&&buddy.group==='Heroes'){
@@ -363,17 +414,23 @@ function buddyArtwork(id){
     accessory='<path d="M32 29L28 13L42 23L50 10L58 23L72 13L68 31Q50 23 32 31Z" fill="#59426f" stroke="#33263d" stroke-width="2.5"/><circle cx="50" cy="24" r="3" fill="'+eyes+'"/>';
   }
 
-  let bodyMark='';
-  if(!animal){
-    bodyMark=buddy.group==='Villains'
+  const bodyMark=!animal
+    ?(buddy.group==='Villains'
       ?'<path d="M50 83L55 89L50 96L45 89Z" fill="'+eyes+'" stroke="#33263d" stroke-width="2"/>'
-      :'<path d="M50 81L55 87L50 93L45 87Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/>';
-  }
+      :'<path d="M50 81L55 87L50 93L45 87Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/>')
+    :'';
 
-  return '<svg class="buddy-art motion-'+motion+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
-    +'<path d="M21 98Q23 77 50 76Q77 77 79 98Z" fill="'+(buddy.group==='Villains'?'#453750':buddy.group==='Heroes'?'#465a9d':'#5867c9')+'" stroke="#33263d" stroke-width="3"/>'
-    +bodyMark+sword+ears+head
-    +(animal?'':hairShapes[buddy.style])
+  const hairMarkup=animal?'':hairShapes[buddy.style];
+  const auraColor=buddy.sword||eyes;
+
+  return '<svg class="buddy-art motion-'+motion+' '+characterType+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
+    +'<g class="buddy-aura" fill="none" stroke="'+auraColor+'" stroke-width="2"><circle cx="50" cy="52" r="43" stroke-dasharray="4 7"/><path d="M50 3L53 10L50 17L47 10Z" fill="'+auraColor+'"/><path d="M8 53L15 50L22 53L15 56Z" fill="'+auraColor+'"/></g>'
+    +'<path class="buddy-spark" d="M15 37L18 44L25 47L18 50L15 57L12 50L5 47L12 44Z" fill="#fff6a8"/>'
+    +'<path class="buddy-spark delay" d="M83 31L86 37L92 40L86 43L83 49L80 43L74 40L80 37Z" fill="'+auraColor+'"/>'
+    +'<g class="buddy-body"><path d="M21 98Q23 77 50 76Q77 77 79 98Z" fill="'+outfit+'" stroke="#33263d" stroke-width="3"/><path d="M40 79L50 91L60 79" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>'+bodyMark+'</g>'
+    +'<g class="buddy-arm"><path d="M24 83L14 93M76 83L86 93" stroke="'+outfit+'" stroke-width="9" stroke-linecap="round"/><circle cx="14" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/><circle cx="86" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/></g>'
+    +sword+ears+head
+    +(animal?'':'<g class="buddy-hair">'+hairMarkup+'</g>')
     +accessory+eyesMarkup+animalFace
     +'</svg>';
 }
@@ -660,6 +717,19 @@ function settingsModal(){
     box.innerHTML=`<h3>Settings</h3>
     <label>Your name</label><input type="text" id="s_name" value="${esc(S.settings.name||'')}">
 
+    <section class="buddy-settings" aria-labelledby="font-settings-title">
+      <h4 id="font-settings-title">Reading font</h4>
+      <label>Choose a font</label>
+      <div class="font-picker" id="s_font_choices">
+        ${FONTS.map(font=>`
+          <button type="button" class="font-option ${S.settings.font===font.id?'selected':''}" data-font="${font.id}" aria-pressed="${S.settings.font===font.id?'true':'false'}">
+            <span class="font-option-name" style="font-family:${font.stack}">${esc(font.name)}</span>
+            <span class="font-option-preview" style="font-family:${font.stack}">Aa Bb Cc — The quick brown fox jumps over the lazy dog.</span>
+          </button>
+        `).join('')}
+      </div>
+    </section>
+
     <section class="buddy-settings" aria-labelledby="buddy-settings-title">
       <h4 id="buddy-settings-title">Zippy</h4>
       <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName)}">
@@ -685,6 +755,19 @@ function settingsModal(){
     <button class="pri" id="s_ok">Done</button>`;
 
     const get=id=>box.querySelector('#'+id);
+
+    box.querySelectorAll('[data-font]').forEach(button=>{
+      button.onclick=()=>{
+        S.settings.font=button.dataset.font;
+        save();
+        applyFont();
+        box.querySelectorAll('[data-font]').forEach(option=>{
+          const selected=option.dataset.font===S.settings.font;
+          option.classList.toggle('selected',selected);
+          option.setAttribute('aria-pressed',selected?'true':'false');
+        });
+      };
+    });
 
     function drawBuddyChoices(){
       const groups=['Emoji','Heroes','Villains','Animals'];
@@ -845,6 +928,7 @@ function settingsModal(){
 
           S=normalizeData(imported);
           save();
+          applyFont();
           applyWall();
           updateZippy();
           close(1);
@@ -1116,6 +1200,7 @@ async function ensureName(){
   }
 }
 
+applyFont();
 updateZippy();
 q('zippy-face').onclick=()=>{
   zippySpeak(`Hi! I'm ${S.settings.buddyName||'Zippy'}—you've got this!`);
