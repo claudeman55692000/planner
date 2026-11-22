@@ -914,7 +914,7 @@ if('serviceWorker' in navigator){
 async function ensureName(){
   while(!S.settings.name){
     const name=await modal((box,close)=>{
-      box.innerHTML='<h3>Welcome! 👋 What\\'s your name?</h3><p class="small">I\\'ll use it in your reminders.</p><input type="text" placeholder="Your name"><button class="pri">Let\\'s go</button>';
+      box.innerHTML=`<h3>Welcome! 👋 What's your name?</h3><p class="small">I'll use it in your reminders.</p><input type="text" placeholder="Your name"><button class="pri">Let's go</button>`;
       const input=box.querySelector('input');
       const button=box.querySelector('button');
       const submit=()=>{
