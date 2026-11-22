@@ -535,12 +535,24 @@ function ask(title,placeholder,initial=''){
   });
 }
 
-function dateModal(initial){   return modal((box,close)=>{     box.innerHTML=`<h3>When is it due?</h3>       <input type="date" value="${esc(initial||'')}">       <button class="pri">Save date</button>       <button class="ok">Custom time</button>       <button>No due date</button>       <button class="danger">Cancel</button>`;      const input=box.querySelector('input');     const [saveDate,customTime,noDate,cancel]=box.querySelectorAll('button');      saveDate.onclick=()=>{       if(input.value)close(input.value);       else input.focus();     };      customTime.onclick=()=>close('CUSTOM');     noDate.onclick=()=>close('NA');     cancel.onclick=()=>close(null);   }); }
+function dateModal(initial){
   return modal((box,close)=>{
-    box.innerHTML=`<h3>When is it due?</h3><input type="date" value="${esc(initial||'')}"><button class="pri">Save date</button><button class="ok">N/A: remind me daily until I turn it off</button><button class="danger">Cancel</button>`;
+    box.innerHTML=`<h3>When is it due?</h3>
+      <input type="date" value="${esc(initial||'')}">
+      <button class="pri">Save date</button>
+      <button class="ok">Custom time</button>
+      <button>No due date</button>
+      <button class="danger">Cancel</button>`;
+
     const input=box.querySelector('input');
-    const [saveDate,noDate,cancel]=box.querySelectorAll('button');
-    saveDate.onclick=()=>{if(input.value)close(input.value);else input.focus()};
+    const [saveDate,customTime,noDate,cancel]=box.querySelectorAll('button');
+
+    saveDate.onclick=()=>{
+      if(input.value)close(input.value);
+      else input.focus();
+    };
+
+    customTime.onclick=()=>close('CUSTOM');
     noDate.onclick=()=>close('NA');
     cancel.onclick=()=>close(null);
   });
