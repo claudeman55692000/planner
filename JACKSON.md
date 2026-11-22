@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Jackson is the working feature document for planner buddy, accessibility/customization, and backup improvements. Changes should be made on the `feature/backup-and-restore` branch before Jackson is merged into `main`.
+Jackson is the working feature document for planner buddy, accessibility/customization, assignment reminders, and backup improvements. Changes should be made on the `feature/backup-and-restore` branch before Jackson is merged into `main`.
 
 ## Planner buddy
 
@@ -58,6 +58,22 @@ Examples:
 - Emails use text and emoji supported by the app.
 - Interactive animations cannot exist inside an email; the email should link back to the planner.
 - Email copy should preserve urgency for assignments due tomorrow without adding unnecessary pressure.
+
+## Assignment reminder schedule
+
+- Reminder frequency and timing are configurable separately for each assignment when creating it.
+- Remove the current **“N/A: remind me daily”** choice and replace it with **“Custom time.”**
+- Offer **“Use default”** to use the planner's existing default reminder schedule.
+- After choosing **Use default**, let the user select the reminder time for that assignment.
+- After choosing **Custom time**, show a calendar where the user can choose the specific dates on which that assignment should trigger reminders.
+- In the custom schedule, show these three follow-up choices after the final selected reminder date:
+  1. **After the final day, remind me each day.**
+  2. **After the final day, remind me on a default schedule.**
+  3. **After the final day, don't remind me anymore on this assignment.**
+- The user must select exactly one follow-up choice to continue. Only one can be checked at a time; the currently checked choice can be unchecked so the user can select another. Do not allow continuing until one choice is selected.
+- Put a **“Don't remind me on this assignment”** option below both the default and custom schedule choices. Style it with red text.
+- Selecting that no-reminders option opens a confirmation warning with wording such as: **“Is this what you want? You won't get reminders on this assignment.”** Only disable reminders if the user confirms; canceling returns to schedule selection.
+- Store the schedule on the assignment so it remains independent of other assignments and survives export/import.
 
 ## Customize
 
