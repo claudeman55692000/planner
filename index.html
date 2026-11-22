@@ -236,7 +236,7 @@ function settingsModal(){
     <label>Daily reminder time</label><input type="time" id="s_time" value="${esc(S.settings.time)}">
     <label>GitHub sync: your repo (username/repo-name)</label><input type="text" id="s_repo" placeholder="yourname/planner" value="${esc(syncCfg().repo||'')}">
     <label>GitHub token</label><input type="password" id="s_tok" placeholder="paste token" value="${esc(syncCfg().token||'')}">
-    <button id="s_sync">Save &amp; sync now</button>
+    <button id="s_sync">Save &amp; sync now</button> <button id="s_export">Export Data</button> <button id="s_import">Import Data</button> <input type="file" id="s_file" accept="application/json,.json" hidden>
     <button id="s_n">Notifications: ${perm==='granted'?'ON ✓ (send a test)':'tap to enable'}</button>
     <button class="pri" id="s_ok">Done</button>`;
     const g=i=>box.querySelector('#'+i);
