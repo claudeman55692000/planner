@@ -377,6 +377,168 @@ body.zippy-highfive-active #zippy-dock{visibility:hidden}
   .highfive-stage *,
   .zippy-menu-backdrop *{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+  /* Zippy's guided tour */
+.zippy-tour{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  overflow:auto;
+  background:rgba(0,0,0,.82);
+}
+.zippy-tour[hidden]{display:none}
+.zippy-tour-dialog{
+  position:relative;
+  width:min(100%,620px);
+  max-height:96vh;
+  overflow:auto;
+  padding:16px;
+  border-radius:18px;
+  background:#fff;
+  color:#1b1b2f;
+  box-shadow:0 12px 45px #0008;
+}
+.zippy-tour-dialog h2{margin:0 0 8px}
+.zippy-tour-screen{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  padding:14px;
+  border:1px solid #d1d5db;
+  border-radius:14px;
+  background:#f8fafc;
+  color:#1b1b2f;
+}
+.zippy-tour-screen::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:14px;
+  background:rgba(0,0,0,.72);
+  pointer-events:none;
+}
+.zippy-tour-screen [data-tour-focus]{
+  position:relative;
+  z-index:2;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 4px #facc15;
+}
+.tour-screen-title{
+  margin:0 0 12px;
+  font-size:18px;
+  font-weight:700;
+}
+.tour-screen-button,
+.tour-screen-input,
+.tour-screen-row,
+.tour-screen-label{
+  display:block;
+  width:100%;
+  margin:7px 0;
+  padding:11px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#fff;
+  color:#1b1b2f;
+  text-align:left;
+  font:inherit;
+}
+.tour-screen-button.primary{
+  border:0;
+  background:linear-gradient(135deg,#4f46e5,#ec4899);
+  color:#fff;
+  font-weight:700;
+}
+.tour-screen-input{
+  color:#374151;
+}
+.tour-screen-label{
+  padding:5px 0 0;
+  border:0;
+  background:transparent;
+  font-size:13px;
+  font-weight:700;
+}
+.tour-wallpapers{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:8px 0;
+}
+.tour-wallpaper{
+  min-height:46px;
+  border:2px solid #fff;
+  border-radius:9px;
+  box-shadow:0 0 0 1px #cbd5e1;
+}
+.zippy-tour-buddy{
+  position:absolute;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:min(280px,calc(100% - 12px));
+  pointer-events:none;
+  transition:left .25s ease,top .25s ease;
+}
+.zippy-tour-buddy-face{
+  display:grid;
+  flex:none;
+  width:56px;
+  height:56px;
+  place-items:center;
+  overflow:visible;
+  border:3px solid #111;
+  border-radius:50%;
+  background:#ffd84d;
+  font-size:34px;
+  box-shadow:0 4px 12px #0005;
+}
+.zippy-tour-buddy-face .buddy-art{
+  width:48px;
+  height:48px;
+}
+.zippy-tour-buddy-message{
+  padding:9px 11px;
+  border:2px solid #111;
+  border-radius:14px;
+  background:#fff;
+  color:#111;
+  font-size:13px;
+  line-height:1.35;
+  box-shadow:0 4px 12px #0004;
+}
+.zippy-tour-count{
+  margin:10px 0;
+  color:#4b5563;
+  font-size:13px;
+}
+.zippy-tour-actions{
+  position:sticky;
+  bottom:0;
+  display:flex;
+  gap:10px;
+  padding-top:8px;
+  background:#fff;
+}
+.zippy-tour-actions button{
+  flex:1;
+  min-height:48px;
+  opacity:1;
+  filter:none;
+}
+@media(max-width:420px){
+  .zippy-tour-dialog{padding:12px}
+  .tour-wallpapers{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .zippy-tour-buddy{width:min(250px,calc(100% - 8px))}
+}
+@media(prefers-reduced-motion:reduce){
+  .zippy-tour-buddy{transition:none}
+}
+  
 </style>
 </head>
 <body>
@@ -1670,7 +1832,419 @@ function toast(messageText){
   setTimeout(()=>element.remove(),6000);
   zippySpeak(messageText);
 }
+const ZIPPY_TOUR_KEY='zippy-first-tour-complete';
 
+function tourControl(text,{focus=false,primary=false}={}){
+  return `<div class="tour-screen-button${primary?' primary':''}" ${focus?'data-tour-focus':''}>${text}</div>`;
+}
+
+function tourInput(text,{focus=false}={}){
+  return `<div class="tour-screen-input" ${focus?'data-tour-focus':''}>${text}</div>`;
+}
+
+function tourLabel(text){
+  return `<div class="tour-screen-label">${text}</div>`;
+}
+
+function tourWallpapers(focusIndex){
+  return `<div class="tour-wallpapers">
+    ${WALLS.map((wall,index)=>
+      `<div class="tour-wallpaper" title="${esc(wall[0])}"
+        style="background:${wall[1]}"
+        ${index===focusIndex?'data-tour-focus':''}></div>`
+    ).join('')}
+  </div>`;
+}
+
+function tourScreen(scene){
+  switch(scene){
+    case 'class-add':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('＋ New assignment')}
+        ${tourControl('My assignments')}
+        ${tourLabel('Academic classes')}
+        ${tourControl('None yet')}
+        ${tourControl('+ Add class',{focus:true,primary:true})}
+        ${tourControl('Edit classes')}`;
+
+    case 'class-name':
+      return `<div class="tour-screen-title">Class name</div>
+        ${tourInput('Calculus',{focus:true})}
+        ${tourControl('OK',{primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'class-category':
+      return `<div class="tour-screen-title">Which category is “Calculus”?</div>
+        ${tourControl('Academic',{focus:true,primary:true})}
+        ${tourControl('Other (sports, chess, clubs...)')}`;
+
+    case 'assignment-new':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('＋ New assignment',{focus:true,primary:true})}
+        ${tourControl('📋 My assignments (0 active)')}
+        ${tourLabel('Academic classes')}
+        ${tourControl('+ Add class')}
+        ${tourControl('Edit classes')}`;
+
+    case 'assignment-title':
+      return `<div class="tour-screen-title">Assignment title</div>
+        ${tourInput('Calculus Unit Test',{focus:true})}
+        ${tourControl('OK',{primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'assignment-class':
+      return `<div class="tour-screen-title">Which class is this for?</div>
+        ${tourControl('Chemistry')}
+        ${tourControl('Physics')}
+        ${tourControl('Calculus',{focus:true,primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'assignment-type':
+      return `<div class="tour-screen-title">What type of assignment is this?</div>
+        ${tourControl('Test',{focus:true,primary:true})}
+        ${tourControl('Quiz')}
+        ${tourControl('Homework')}
+        ${tourControl('Special project')}
+        ${tourControl('Other')}`;
+
+    case 'assignment-due':
+      return `<div class="tour-screen-title">When is it due?</div>
+        ${tourInput('Choose a due date',{focus:true})}
+        ${tourControl('Save date',{primary:true})}
+        ${tourControl('Custom time')}
+        ${tourControl('No due date')}`;
+
+    case 'reminder-mode':
+      return `<div class="tour-screen-title">Reminder schedule</div>
+        <p>Choose this assignment’s reminder schedule.</p>
+        ${tourControl('Use default',{focus:true,primary:true})}
+        ${tourControl('Custom time')}
+        ${tourControl('Don’t remind me on this assignment')}`;
+
+    case 'reminder-default':
+      return `<div class="tour-screen-title">Default reminder time</div>
+        ${tourLabel('Hour')}
+        ${tourControl('4')}
+        ${tourLabel('Minute')}
+        ${tourControl('00')}
+        ${tourLabel('AM/PM')}
+        ${tourControl('PM',{focus:true})}
+        <p class="small">Uses your device’s local clock and time zone.</p>`;
+
+    case 'reminder-custom':
+      return `<div class="tour-screen-title">Custom reminder schedule</div>
+        ${tourLabel('Choose reminder dates')}
+        ${tourInput('Choose a date',{focus:true})}
+        ${tourControl('Add date')}
+        <p><strong>After the final selected custom reminder date:</strong></p>
+        ${tourControl('Remind me each day')}
+        ${tourControl('Remind me on a default schedule')}
+        ${tourControl('Don’t remind me anymore')}`;
+
+    case 'reminder-finish':
+      return `<div class="tour-screen-title">Reminder schedule</div>
+        ${tourControl('Continue',{focus:true,primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'settings-open':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('⚙ Settings',{focus:true})}
+        ${tourControl('＋ New assignment',{primary:true})}
+        ${tourControl('📋 My assignments (0 active)')}
+        ${tourControl('+ Add class')}`;
+
+    case 'settings-wallpaper':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Wallpaper')}
+        ${tourWallpapers(0)}
+        ${tourLabel('Custom color')}
+        ${tourInput('Choose a color')}
+        ${tourLabel('Your own picture')}
+        ${tourInput('Choose a picture',{focus:true})}`;
+
+    case 'settings-font':
+      return `<div class="tour-screen-title">Reading font</div>
+        ${tourLabel('Choose a font')}
+        ${tourControl('Atkinson Hyperlegible',{focus:true})}
+        ${tourControl('OpenDyslexic')}
+        ${tourControl('Lexend')}
+        ${tourControl('Andika')}
+        ${tourControl('Comic Neue')}`;
+
+    case 'settings-zippy':
+      return `<div class="tour-screen-title">Zippy</div>
+        ${tourLabel('Zippy’s name')}
+        ${tourInput('Zippy')}
+        ${tourLabel('Zippy’s color')}
+        ${tourControl('Choose a color',{focus:true})}
+        ${tourLabel('Choose Zippy’s look')}
+        ${tourControl('Emoji · Heroes · Villains · Animals')}
+        ${tourLabel('Zippy cheer level')}
+        ${tourControl('0 ─────●───── 5')}`;
+
+    case 'settings-time':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Daily reminder time')}
+        ${tourInput('4:00 PM',{focus:true})}
+        <p class="small">This is the default reminder time.</p>`;
+
+    case 'settings-notifications':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Notifications')}
+        ${tourControl('Tap to enable',{focus:true})}
+        <p class="small">Your browser may ask permission to send notifications.</p>`;
+
+    case 'settings-backup':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourControl('Export Data',{focus:true})}
+        ${tourControl('Import Data')}
+        <p class="small">Import replaces the planner data in this browser.</p>`;
+
+    case 'settings-github':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('GitHub sync: your repo (username/repo-name)')}
+        ${tourInput('yourname/planner')}
+        ${tourLabel('GitHub token')}
+        ${tourInput('Paste token',{focus:true})}
+        ${tourControl('Save & sync now')}`;
+
+    default:
+      return `<div class="tour-screen-title">Study Planner</div>`;
+  }
+}
+
+async function startZippyTour(){
+  const steps=[
+    {
+      title:'First, add a class',
+      message:'Classes organize your assignments. Choose “+ Add class” to create one.',
+      scene:'class-add'
+    },
+    {
+      title:'Name your class',
+      message:'Type your class name here. This example uses Calculus.',
+      scene:'class-name'
+    },
+    {
+      title:'Choose a category',
+      message:'Choose the category that fits your class: Academic for school subjects, or Other for activities.',
+      scene:'class-category'
+    },
+    {
+      title:'Now add an assignment',
+      message:'Choose “New assignment” to begin adding work.',
+      scene:'assignment-new'
+    },
+    {
+      title:'Type the assignment name',
+      message:'Enter the name of the assignment. This example is “Calculus Unit Test.”',
+      scene:'assignment-title'
+    },
+    {
+      title:'Choose the class',
+      message:'Pick the class this assignment belongs to. Here, Calculus is highlighted.',
+      scene:'assignment-class'
+    },
+    {
+      title:'Choose the type',
+      message:'Because this example is a unit TEST, choose Test.',
+      scene:'assignment-type'
+    },
+    {
+      title:'Choose the due date',
+      message:'Pick a date and save it. You can also choose Custom time or No due date.',
+      scene:'assignment-due'
+    },
+    {
+      title:'Choose a reminder schedule',
+      message:'Use default for the usual reminder schedule, or choose Custom time to select dates. You can also turn reminders off for this assignment.',
+      scene:'reminder-mode'
+    },
+    {
+      title:'Default reminder time',
+      message:'The reminder uses the selected hour, minute, and AM or PM. It follows your device’s local clock and time zone.',
+      scene:'reminder-default'
+    },
+    {
+      title:'Custom reminder dates',
+      message:'Add the dates when you want reminders. After the final date, choose whether reminders continue daily, use the default schedule, or stop.',
+      scene:'reminder-custom'
+    },
+    {
+      title:'Finish creating the assignment',
+      message:'Choose Continue to save the reminder schedule and finish creating the assignment.',
+      scene:'reminder-finish'
+    },
+    {
+      title:'Open Settings',
+      message:'Settings contains the planner’s appearance, reminder, notification, and backup options.',
+      scene:'settings-open'
+    },
+    {
+      title:'Choose a wallpaper',
+      message:'These are the actual wallpaper choices in the app. You can also choose a custom color or your own picture.',
+      scene:'settings-wallpaper'
+    },
+    {
+      title:'Choose a reading font',
+      message:'Choose the font that is easiest for you to read.',
+      scene:'settings-font'
+    },
+    {
+      title:'Personalize Zippy',
+      message:'Change my name, color, character, and cheer level here.',
+      scene:'settings-zippy'
+    },
+    {
+      title:'Set the daily reminder time',
+      message:'This is the default time for reminders. An assignment can have its own custom schedule instead.',
+      scene:'settings-time'
+    },
+    {
+      title:'Notifications',
+      message:'Tap this setting to enable browser notifications. Your browser may ask you to allow them.',
+      scene:'settings-notifications'
+    },
+    {
+      title:'Back up your planner',
+      message:'Export Data downloads a backup. Import Data loads a backup and replaces the planner data in this browser.',
+      scene:'settings-backup'
+    },
+    {
+      title:'Optional GitHub sync',
+      message:'If you don’t have a GitHub account, this does not apply to you. GitHub sync is optional and is for saving planner data to a repository you configure.',
+      scene:'settings-github'
+    },
+    {
+      title:'You’re ready!',
+      message:'That’s how the planner works. Open my menu and choose Re-Tour any time to see this guide again.',
+      scene:'settings-open'
+    }
+  ];
+
+  const overlay=document.createElement('div');
+  overlay.className='zippy-tour';
+  overlay.innerHTML=`
+    <section class="zippy-tour-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="zippy-tour-title">
+      <h2 id="zippy-tour-title"></h2>
+      <div class="zippy-tour-screen"></div>
+      <div class="zippy-tour-buddy">
+        <div class="zippy-tour-buddy-face"></div>
+        <div class="zippy-tour-buddy-message"></div>
+      </div>
+      <p class="zippy-tour-count"></p>
+      <div class="zippy-tour-actions">
+        <button type="button" class="pri" id="zippy-tour-next">Next</button>
+        <button type="button" class="danger" id="zippy-tour-skip">Skip Tour</button>
+      </div>
+    </section>`;
+
+  document.body.appendChild(overlay);
+
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+
+  const dialog=overlay.querySelector('.zippy-tour-dialog');
+  const title=overlay.querySelector('#zippy-tour-title');
+  const screen=overlay.querySelector('.zippy-tour-screen');
+  const buddy=overlay.querySelector('.zippy-tour-buddy');
+  const buddyFace=overlay.querySelector('.zippy-tour-buddy-face');
+  const buddyMessage=overlay.querySelector('.zippy-tour-buddy-message');
+  const count=overlay.querySelector('.zippy-tour-count');
+  const next=overlay.querySelector('#zippy-tour-next');
+  const skip=overlay.querySelector('#zippy-tour-skip');
+
+  const design=S.settings.buddyDesign||'😀';
+  const character=buddyPreview(design);
+  buddyFace.innerHTML=character||'😀';
+  buddyFace.style.backgroundColor=S.settings.buddyColor||'#ffd84d';
+
+  let index=0;
+  let finished=false;
+
+  const placeBuddy=()=>{
+    const focus=screen.querySelector('[data-tour-focus]');
+    if(!focus)return;
+
+   const dialogRect=dialog.getBoundingClientRect();
+const focusRect=focus.getBoundingClientRect();
+    const buddyWidth=buddy.offsetWidth||260;
+    const buddyHeight=buddy.offsetHeight||64;
+
+   let left=focusRect.left-dialogRect.left;
+let top=focusRect.bottom-dialogRect.top+10;
+
+    if(top+buddyHeight>screen.clientHeight){
+      top=focusRect.top-dialogRect.top-buddyHeight-10;
+    }
+
+    left=Math.max(4,Math.min(left,screen.clientWidth-buddyWidth-4));
+    top=Math.max(4,top);
+
+    buddy.style.left=left+'px';
+    buddy.style.top=top+'px';
+  };
+
+  const draw=()=>{
+    const step=steps[index];
+    title.textContent=step.title;
+    screen.innerHTML=tourScreen(step.scene);
+    buddyMessage.textContent=step.message;
+    count.textContent=`Step ${index+1} of ${steps.length}`;
+    next.textContent=index===steps.length-1?'Finish':'Next';
+
+    requestAnimationFrame(placeBuddy);
+  };
+
+  const finish=()=>{
+    if(finished)return;
+    finished=true;
+    try{localStorage.setItem(ZIPPY_TOUR_KEY,'yes')}catch(error){}
+    document.removeEventListener('keydown',trapKeys,true);
+    document.removeEventListener('click',blockOtherClicks,true);
+    document.body.style.overflow=oldOverflow;
+    overlay.remove();
+  };
+
+  const trapKeys=event=>{
+    if(event.key==='Tab'){
+      event.preventDefault();
+      (document.activeElement===next?skip:next).focus();
+      return;
+    }
+    if(event.key==='Escape'){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
+  const blockOtherClicks=event=>{
+    if(event.target===next||event.target===skip)return;
+    if(overlay.contains(event.target)){
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
+  };
+
+  next.onclick=()=>{
+    if(index===steps.length-1){
+      finish();
+      return;
+    }
+    index++;
+    draw();
+  };
+
+  skip.onclick=finish;
+
+  overlay.addEventListener('click',blockOtherClicks,true);
+  document.addEventListener('keydown',trapKeys,true);
+
+  draw();
+  next.focus();
+}
   const ZIPPY_WHAT_ARE_YOU_KEY='zippy-what-are-you-used';
 
 function zippyMenu(){
@@ -1724,6 +2298,7 @@ function zippyMenu(){
     });
   }
 
+  addChoice('Re-Tour',startZippyTour);
   addChoice('High five!',startZippyHighFive);
   document.body.appendChild(backdrop);
 }
@@ -2036,7 +2611,16 @@ applyFont();
 updateZippy();
 q('zippy-face').onclick=openZippyMenu;
 applyWall();
-ensureName().then(()=>{
+ensureName().then(async()=>{
+  let tourAlreadyComplete=false;
+  try{
+    tourAlreadyComplete=localStorage.getItem(ZIPPY_TOUR_KEY)==='yes';
+  }catch(error){}
+
+  if(!tourAlreadyComplete){
+    await startZippyTour();
+  }
+
   render();
   checkReminders();
 });
