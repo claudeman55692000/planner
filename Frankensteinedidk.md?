@@ -1,1 +1,2636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4f46e5">
+<link rel="icon" href="data:,">
+<title>Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=Comic+Neue:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
+<style>
+:root{--ink:#1b1b2f;--glass:rgba(255,255,255,.88);--acc:#4f46e5;--acc2:#ec4899;--ok:#16a34a;--bad:#dc2626;--planner-font:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--planner-font,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif);color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#6366f1,#ec4899)}
+button,input,select,textarea{font-family:inherit}
+#app{max-width:640px;margin:0 auto;padding:16px 14px 100px}
+h1{margin:0;font-size:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+h2{font-size:18px;margin:0 0 10px}
+.top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 14px}
+.sub{color:#fff;opacity:.95;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.card{background:var(--glass);backdrop-filter:blur(8px);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 14px;background:#e5e7eb;color:var(--ink)}
+button.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-weight:600}
+button.big{width:100%;padding:16px;font-size:17px;margin-bottom:10px}
+button.ghost{background:rgba(255,255,255,.25);color:#fff}
+button.danger{background:#fee2e2;color:var(--bad)}
+button.ok{background:#dcfce7;color:var(--ok)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1}
+.chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:13px;margin:3px 4px 3px 0;color:#fff}
+.academic{background:#4f46e5}.other{background:#ea580c}
+.t-test{background:#dc2626}.t-quiz{background:#d97706}.t-homework{background:#2563eb}.t-project{background:#7c3aed}.t-other{background:#6b7280}
+.asg{cursor:pointer}
+.asg.done{opacity:.55}
+.asg .title{font-weight:700;font-size:16px}
+.small{font-size:13px;color:#4b5563}
+.late{color:var(--bad);font-weight:700}
+.soon{color:#b45309;font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(10,10,30,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.box{background:#fff;border-radius:18px;padding:18px;width:100%;max-width:440px;max-height:90vh;overflow:auto}
+.box h3{margin:0 0 12px}
+.box button{width:100%;margin-bottom:8px}
+input[type=text],input[type=date],input[type=time],input[type=password],select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #d1d5db;border-radius:10px;margin-bottom:10px;background:#fff}
+textarea{min-height:90px}
+label{font-size:13px;color:#4b5563;display:block;margin-bottom:3px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;background:rgba(255,255,255,.35);color:#fff}
+.tabs button.on{background:#fff;color:var(--acc);font-weight:700}
+.walls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.walls button{height:50px;padding:0;margin:0;border:2px solid #fff;box-shadow:0 0 0 1px #d1d5db}
+#toasts{position:fixed;left:0;right:0;top:10px;z-index:99;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:#111827;color:#fff;padding:12px 16px;border-radius:14px;max-width:92%;box-shadow:0 6px 18px rgba(0,0,0,.35);pointer-events:auto}
+.empty{text-align:center;color:#4b5563;padding:10px}
+.zippy-dock{position:fixed;right:18px;bottom:18px;z-index:45;display:flex;align-items:flex-end;gap:10px}
+.zippy-face{width:76px;height:76px;padding:0;border:4px solid #111;border-radius:50%;display:grid;place-items:center;font-size:42px;box-shadow:0 6px 18px #0004;overflow:visible}
+.zippy-bubble{max-width:min(260px,calc(100vw - 130px));padding:12px 14px;border:2px solid #111;border-radius:16px;background:#fff;color:#111;box-shadow:0 6px 18px #0003;font-size:14px}
+.zippy-bubble[hidden]{display:none}
+.zippy-dock.is-speaking .zippy-face{animation:zippy-bounce var(--zippy-bounce-duration,.55s) ease-in-out 2}
+.zippy-face .buddy-art{width:64px;height:64px;display:block;overflow:visible}
+.buddy-settings{border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:8px 0 16px;background:#fafaff}
+.buddy-settings h4{font-size:17px;margin:0 0 12px;color:#312e81}
+.buddy-section-title{margin:10px 0 6px;font-size:14px;font-weight:700;color:#374151}
+.buddy-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.font-picker{display:grid;gap:8px;margin:6px 0 12px}
+.box .font-option{width:100%;margin:0;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#f3f4f6;border:2px solid transparent}
+.box .font-option.selected{border-color:var(--acc);background:#eef2ff}
+.font-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
+.font-option-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.font-option-preview{font-size:16px;line-height:1.4;color:#374151}
+.box .buddy-option{width:auto;margin:0;padding:7px;display:flex;align-items:center;gap:8px;text-align:left;background:#f3f4f6;border:2px solid transparent;min-width:0}
+.box .buddy-option.selected{border-color:var(--acc);background:#eef2ff}
+.buddy-option:focus-visible{outline:3px solid #818cf8;outline-offset:2px}
+.buddy-option .buddy-art{width:44px;height:44px;flex:none}
+.buddy-option-name{font-size:12px;font-weight:650;line-height:1.2}
+.buddy-emoji{font-size:34px;width:44px;flex:none;text-align:center}
 
+/* Character animation layers */
+.buddy-art{transform-origin:50% 70%;animation:buddy-idle 2.4s ease-in-out infinite}
+.buddy-art.motion-1{animation-duration:2.9s}
+.buddy-art.motion-2{animation-name:buddy-sway;animation-duration:2.2s}
+.buddy-art.motion-3{animation-name:buddy-pulse;animation-duration:2.6s}
+.buddy-art .buddy-aura{transform-box:fill-box;transform-origin:center;animation:aura-pulse 2.2s ease-in-out infinite}
+.buddy-art .buddy-spark{transform-box:fill-box;transform-origin:center;animation:sparkle 1.8s ease-in-out infinite}
+.buddy-art .buddy-spark.delay{animation-delay:.9s}
+.buddy-art .buddy-hair{transform-box:fill-box;transform-origin:50% 100%;animation:hair-sway 2.8s ease-in-out infinite}
+.buddy-art .buddy-body{transform-box:fill-box;transform-origin:50% 100%;animation:body-breathe 2.7s ease-in-out infinite}
+.buddy-art .buddy-arm{transform-box:fill-box;transform-origin:50% 15%;animation:arm-sway 2.1s ease-in-out infinite}
+.buddy-art .buddy-sword{transform-box:view-box;transform-origin:78px 57px;animation:sword-float 2.3s ease-in-out infinite}
+.buddy-art .buddy-sword-glow{animation:sword-glow 1.6s ease-in-out infinite}
+.buddy-art .buddy-blink{animation:eye-blink 4.7s linear infinite}
+.buddy-art.villain .buddy-aura{animation-duration:3.1s}
+.buddy-art.villain .buddy-spark{animation-duration:2.4s}
+.buddy-art.animal .buddy-body{animation-duration:2s}
+.buddy-option:hover .buddy-art{animation-duration:.7s}
+.zippy-dock.is-speaking .zippy-face .buddy-art{animation-duration:.55s}
+.zippy-dock.is-speaking .zippy-face .buddy-sword{animation-duration:.6s}
+@keyframes buddy-idle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-1deg)}}
+@keyframes buddy-sway{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-2px) rotate(-4deg)}70%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes buddy-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+@keyframes aura-pulse{0%,100%{opacity:.18;transform:scale(.92)}50%{opacity:.55;transform:scale(1.08)}}
+@keyframes sparkle{0%,100%{opacity:.25;transform:scale(.55) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+@keyframes hair-sway{0%,100%{transform:rotate(0)}35%{transform:rotate(-3deg)}70%{transform:rotate(2deg)}}
+@keyframes body-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.035)}}
+@keyframes arm-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+@keyframes sword-float{0%,100%{transform:rotate(25deg) translateY(0)}50%{transform:rotate(20deg) translateY(-4px)}}
+@keyframes sword-glow{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes eye-blink{0%,46%,50%,100%{opacity:0}47%,49%{opacity:1}}
+@keyframes zippy-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px) rotate(-5deg)}}
+@media(max-width:380px){.buddy-picker{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.zippy-dock.is-speaking .zippy-face,.buddy-art,.buddy-art *{animation:none!important}}
+.zippy-menu-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  display:grid;
+  place-items:center;
+  padding:16px;
+  background:rgba(10,10,30,.55);
+}
+
+.zippy-menu{
+  width:min(100%,360px);
+  padding:18px;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 35px #0005;
+}
+
+.zippy-menu h3{margin:0 0 8px}
+.zippy-menu p{margin:0 0 14px}
+.zippy-menu button{
+  display:block;
+  width:100%;
+  margin:8px 0;
+  text-align:left;
+}
+
+.highfive-stage{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  pointer-events:none;
+}
+
+.highfive-caption{
+  position:absolute;
+  top:7vh;
+  left:50%;
+  width:min(90vw,540px);
+  transform:translateX(-50%);
+  padding:14px 18px;
+  border:3px solid #111;
+  border-radius:18px;
+  background:#fff;
+  color:#111;
+  text-align:center;
+  font-size:clamp(18px,4vw,27px);
+  font-weight:800;
+  box-shadow:0 6px 20px #0005;
+}
+
+.highfive-buddy{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:150px;
+  height:150px;
+  padding:0;
+  transform:translate(-50%,-50%);
+  border:5px solid #111;
+  border-radius:50%;
+  background:#ffd84d;
+  pointer-events:auto;
+  overflow:visible;
+  box-shadow:0 8px 30px #0005;
+  animation:highfive-arrive .55s ease-out both;
+}
+
+.highfive-buddy .buddy-art{width:100%;height:100%}
+
+.highfive-stage.dramatic .highfive-buddy{
+  width:clamp(180px,30vw,250px);
+  height:clamp(180px,30vw,250px);
+  border-width:7px;
+  box-shadow:0 0 0 12px #fff8,0 0 55px 25px #ff7b00aa,0 10px 35px #0007;
+  animation:dramatic-arrive .85s cubic-bezier(.2,1.5,.4,1) both;
+}
+
+.hf-flames{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:min(90vw,440px);
+  height:min(90vw,440px);
+  transform:translate(-50%,-50%);
+  opacity:0;
+  pointer-events:none;
+}
+
+.dramatic .hf-flames{opacity:1}
+
+.hf-flames span{
+  position:absolute;
+  bottom:7%;
+  left:calc(8% + var(--i)*7%);
+  width:22%;
+  height:62%;
+  border-radius:50% 50% 35% 35%;
+  background:linear-gradient(to top,#fff 0%,#ffe342 18%,#ff7b14 48%,#ed3025 72%,transparent 100%);
+  filter:blur(3px);
+  transform-origin:50% 100%;
+  animation:flame-dance .42s ease-in-out infinite alternate;
+  animation-delay:calc(var(--i)*-.09s);
+}
+
+.hf-flames span:nth-child(even){
+  height:48%;
+  animation-duration:.31s;
+}
+
+.hf-raised-hand{
+  position:absolute;
+  top:calc(50% - 150px);
+  left:calc(50% + 50px);
+  z-index:5;
+  font-size:clamp(48px,12vw,80px);
+  opacity:0;
+  transform:rotate(-18deg) scale(.3);
+  pointer-events:auto;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+.dramatic .hf-raised-hand{
+  animation:hand-up .55s 1s ease-out forwards,hand-wave .35s 1.6s ease-in-out infinite alternate;
+}
+
+.hf-cracks{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  pointer-events:none;
+}
+
+.cracked .hf-cracks{animation:crack-fade 1.8s ease-out forwards}
+.level-five.cracked .hf-cracks{animation-duration:3s}
+.level-five .hf-cracks path{
+  stroke:#111;
+  stroke-width:1.6;
+  filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 2px #111);
+}
+
+.hf-cracks path{
+  fill:none;
+  stroke:#171717;
+  stroke-width:.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 2px white);
+}
+
+.hf-flash{
+  position:absolute;
+  inset:0;
+  background:#fff;
+  opacity:0;
+  pointer-events:none;
+}
+
+.explosion .hf-flash{animation:screen-flash .35s ease-out}
+
+.hf-hit{
+  position:absolute;
+  top:50%;
+  left:50%;
+  z-index:4;
+  color:#fff;
+  font-size:clamp(32px,10vw,64px);
+  font-weight:1000;
+  text-shadow:3px 3px #111,-2px -2px #111,0 0 18px #ff6b00;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.2) rotate(-12deg);
+  pointer-events:none;
+}
+
+.smacked .hf-hit{animation:hit-pop .7s ease-out forwards}
+
+.hf-thumb{
+  position:absolute;
+  top:calc(50% - 150px);
+  left:calc(50% + 65px);
+  z-index:3;
+  font-size:clamp(64px,15vw,100px);
+  opacity:0;
+  transform:scale(.2) rotate(-25deg);
+  pointer-events:none;
+}
+
+.show-thumb .hf-thumb{animation:thumb-pop .5s ease-out forwards}
+
+.highfive-stage.returning .highfive-buddy{
+  animation:buddy-return .8s ease-in-out forwards;
+}
+
+.highfive-stage.returning .hf-flames,
+.highfive-stage.returning .hf-raised-hand,
+.highfive-stage.returning .hf-thumb,
+.highfive-stage.returning .highfive-caption{
+  opacity:0;
+  transition:opacity .45s ease;
+}
+
+body.zippy-highfive-active #zippy-dock{visibility:hidden}
+
+@keyframes highfive-arrive{
+  from{opacity:0;transform:translate(-50%,-35%) scale(.5)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+@keyframes dramatic-arrive{
+  from{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-20deg)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+
+@keyframes flame-dance{
+  from{transform:scale(.75,.8) rotate(-12deg);filter:blur(2px)}
+  to{transform:scale(1.2,1.18) rotate(12deg);filter:blur(5px)}
+}
+
+@keyframes hand-up{
+  to{opacity:1;transform:rotate(0) scale(1)}
+}
+
+@keyframes hand-wave{
+  from{translate:0 0;rotate:-8deg}
+  to{translate:0 -10px;rotate:8deg}
+}
+
+@keyframes crack-fade{
+  0%{opacity:0}
+  12%,48%{opacity:1}
+  100%{opacity:0}
+}
+
+@keyframes screen-flash{
+  0%{opacity:.95}
+  100%{opacity:0}
+}
+
+@keyframes hit-pop{
+  15%{opacity:1;transform:translate(-50%,-50%) scale(1.35) rotate(8deg)}
+  100%{opacity:0;transform:translate(-50%,-75%) scale(1) rotate(0)}
+}
+
+@keyframes thumb-pop{
+  to{opacity:1;transform:scale(1) rotate(8deg)}
+}
+
+@keyframes buddy-return{
+  from{transform:translate(-50%,-50%) scale(1)}
+  to{
+    transform:
+      translate(
+        calc(50vw - 56px - 50%),
+        calc(50vh - 56px - 50%)
+      )
+      scale(.35);
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .highfive-stage *,
+  .zippy-menu-backdrop *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+  /* Zippy's guided tour */
+.zippy-tour{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  overflow:auto;
+  background:rgba(0,0,0,.82);
+}
+.zippy-tour[hidden]{display:none}
+.zippy-tour-dialog{
+  position:relative;
+  width:min(100%,620px);
+  max-height:96vh;
+  overflow:auto;
+  padding:16px;
+  border-radius:18px;
+  background:#fff;
+  color:#1b1b2f;
+  box-shadow:0 12px 45px #0008;
+}
+.zippy-tour-dialog h2{margin:0 0 8px}
+.zippy-tour-screen{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  padding:14px;
+  border:1px solid #d1d5db;
+  border-radius:14px;
+  background:#f8fafc;
+  color:#1b1b2f;
+}
+.zippy-tour-screen::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:14px;
+  background:rgba(0,0,0,.72);
+  pointer-events:none;
+}
+.zippy-tour-screen [data-tour-focus]{
+  position:relative;
+  z-index:2;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 4px #facc15;
+}
+.tour-screen-title{
+  margin:0 0 12px;
+  font-size:18px;
+  font-weight:700;
+}
+.tour-screen-button,
+.tour-screen-input,
+.tour-screen-row,
+.tour-screen-label{
+  display:block;
+  width:100%;
+  margin:7px 0;
+  padding:11px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#fff;
+  color:#1b1b2f;
+  text-align:left;
+  font:inherit;
+}
+.tour-screen-button.primary{
+  border:0;
+  background:linear-gradient(135deg,#4f46e5,#ec4899);
+  color:#fff;
+  font-weight:700;
+}
+.tour-screen-input{
+  color:#374151;
+}
+.tour-screen-label{
+  padding:5px 0 0;
+  border:0;
+  background:transparent;
+  font-size:13px;
+  font-weight:700;
+}
+.tour-wallpapers{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:8px 0;
+}
+.tour-wallpaper{
+  min-height:46px;
+  border:2px solid #fff;
+  border-radius:9px;
+  box-shadow:0 0 0 1px #cbd5e1;
+}
+.zippy-tour-buddy{
+  position:absolute;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:min(280px,calc(100% - 12px));
+  pointer-events:none;
+  transition:left .25s ease,top .25s ease;
+}
+.zippy-tour-buddy-face{
+  display:grid;
+  flex:none;
+  width:56px;
+  height:56px;
+  place-items:center;
+  overflow:visible;
+  border:3px solid #111;
+  border-radius:50%;
+  background:#ffd84d;
+  font-size:34px;
+  box-shadow:0 4px 12px #0005;
+}
+.zippy-tour-buddy-face .buddy-art{
+  width:48px;
+  height:48px;
+}
+.zippy-tour-buddy-message{
+  padding:9px 11px;
+  border:2px solid #111;
+  border-radius:14px;
+  background:#fff;
+  color:#111;
+  font-size:13px;
+  line-height:1.35;
+  box-shadow:0 4px 12px #0004;
+}
+.zippy-tour-count{
+  margin:10px 0;
+  color:#4b5563;
+  font-size:13px;
+}
+.zippy-tour-actions{
+  position:sticky;
+  bottom:0;
+  display:flex;
+  gap:10px;
+  padding-top:8px;
+  background:#fff;
+}
+.zippy-tour-actions button{
+  flex:1;
+  min-height:48px;
+  opacity:1;
+  filter:none;
+}
+@media(max-width:420px){
+  .zippy-tour-dialog{padding:12px}
+  .tour-wallpapers{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .zippy-tour-buddy{width:min(250px,calc(100% - 8px))}
+}
+@media(prefers-reduced-motion:reduce){
+  .zippy-tour-buddy{transition:none}
+}
+  
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+<div class="zippy-dock" id="zippy-dock">
+  <div class="zippy-bubble" id="zippy-bubble" role="status" hidden></div>
+  <button class="zippy-face" id="zippy-face" type="button" aria-label="Talk to Zippy">😀</button>
+</div>
+<script>
+'use strict';
+
+const KEY='gabe-planner-v1';
+const SYNC_KEY='gabe-planner-sync';
+const TYPES={test:'Test',quiz:'Quiz',homework:'Homework',project:'Special project',other:'Other'};
+const WINDOW={test:7,quiz:4,project:10,homework:2,other:3};
+const WALLS=[
+  ['Sunset','linear-gradient(135deg,#6366f1,#ec4899)'],
+  ['Ocean','linear-gradient(135deg,#0ea5e9,#14b8a6)'],
+  ['Forest','linear-gradient(135deg,#16a34a,#065f46)'],
+  ['Fire','linear-gradient(135deg,#f97316,#dc2626)'],
+  ['Night','linear-gradient(135deg,#1e1b4b,#4338ca)'],
+  ['Candy','linear-gradient(135deg,#f472b6,#a78bfa)'],
+  ['Lime','linear-gradient(135deg,#a3e635,#22d3ee)'],
+  ['Slate','linear-gradient(135deg,#334155,#0f172a)']
+];
+
+const FONTS=[
+  {id:'atkinson',name:'Atkinson Hyperlegible',stack:'"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'opendyslexic',name:'OpenDyslexic',stack:'"OpenDyslexic","Atkinson Hyperlegible","Segoe UI",Arial,sans-serif'},
+  {id:'lexend',name:'Lexend',stack:'"Lexend","Trebuchet MS",Arial,sans-serif'},
+  {id:'andika',name:'Andika',stack:'"Andika","Trebuchet MS",Arial,sans-serif'},
+  {id:'comic-neue',name:'Comic Neue',stack:'"Comic Neue","Comic Sans MS",cursive,sans-serif'}
+];
+
+const BUDDIES=[
+  {id:'😀',name:'Happy',group:'Emoji',emoji:'😀'},
+  {id:'🤓',name:'Smart',group:'Emoji',emoji:'🤓'},
+  {id:'🦊',name:'Fox',group:'Emoji',emoji:'🦊'},
+  {id:'🐻',name:'Bear',group:'Emoji',emoji:'🐻'},
+
+  {id:'hero-aster',name:'Aster Dawnblade',group:'Heroes',skin:'#ffd6c9',hair:'#f5b942',eyes:'#3158c9',style:0,sword:'#69e6ff'},
+  {id:'hero-nyra',name:'Nyra Starfall',group:'Heroes',skin:'#f3c7b5',hair:'#a86bea',eyes:'#52d6d0',style:1,sword:'#d9a7ff'},
+  {id:'hero-kael',name:'Kael Ironcomet',group:'Heroes',skin:'#d99c78',hair:'#25324d',eyes:'#ffcf56',style:2,sword:'#ffd166'},
+  {id:'hero-mira',name:'Mira Suncrest',group:'Heroes',skin:'#f6d2b7',hair:'#ed7255',eyes:'#5ad2a5',style:3,sword:'#fff09a'},
+  {id:'hero-orin',name:'Orin Cloudstep',group:'Heroes',skin:'#e6b79f',hair:'#70c8e8',eyes:'#586ce0',style:4},
+  {id:'hero-sable',name:'Sable Moonward',group:'Heroes',skin:'#bd8b79',hair:'#26243e',eyes:'#c4a0ff',style:1,sword:'#a8a4ff'},
+  {id:'hero-ren',name:'Ren Emberguard',group:'Heroes',skin:'#f2c5a5',hair:'#db543f',eyes:'#5a9ee8',style:2,sword:'#ff8b54'},
+  {id:'hero-tavi',name:'Tavi Greenflare',group:'Heroes',skin:'#d69b80',hair:'#3b9c68',eyes:'#eddb70',style:3},
+  {id:'hero-luma',name:'Luma Prismheart',group:'Heroes',skin:'#f4d0c2',hair:'#ed83b8',eyes:'#60b9ee',style:0,sword:'#ff9bd1'},
+  {id:'hero-bryn',name:'Bryn Stormforge',group:'Heroes',skin:'#c58d78',hair:'#596779',eyes:'#8be5df',style:4,sword:'#a9eaff'},
+
+  {id:'villain-vexa',name:'Vexa Nightglass',group:'Villains',skin:'#d7b5c9',hair:'#39264f',eyes:'#ff5d9e',style:1,sword:'#ff4f91'},
+  {id:'villain-draik',name:'Draik Riftcrown',group:'Villains',skin:'#c69282',hair:'#202638',eyes:'#ff704d',style:2,sword:'#ff675e'},
+  {id:'villain-velora',name:'Velora Thornveil',group:'Villains',skin:'#e5b6b1',hair:'#772f60',eyes:'#bd78ff',style:3,sword:'#bb72ff'},
+  {id:'villain-korr',name:'Korr Ashenfang',group:'Villains',skin:'#a97868',hair:'#39414c',eyes:'#f3c94e',style:4,sword:'#f3c94e'},
+  {id:'villain-nyx',name:'Nyx Voidwhisper',group:'Villains',skin:'#c99aaa',hair:'#292342',eyes:'#9b83ff',style:0},
+  {id:'villain-rix',name:'Rix Cinderclaw',group:'Villains',skin:'#dbab90',hair:'#a94636',eyes:'#ffdb5c',style:2,sword:'#ff9b52'},
+  {id:'villain-morwen',name:'Morwen Duskthorn',group:'Villains',skin:'#d6a8a8',hair:'#56344d',eyes:'#77d9bd',style:1,sword:'#76e3ca'},
+  {id:'villain-zarek',name:'Zarek Blackstar',group:'Villains',skin:'#bd887c',hair:'#202a40',eyes:'#ff6380',style:4,sword:'#fb5579'},
+  {id:'villain-iskra',name:'Iskra Stormhex',group:'Villains',skin:'#e9c0a9',hair:'#7752a0',eyes:'#62c8ff',style:3,sword:'#65cfff'},
+  {id:'villain-umbra',name:'Umbra Crownfall',group:'Villains',skin:'#b9898a',hair:'#31233e',eyes:'#f08bff',style:0,sword:'#d78aff'},
+
+  {id:'animal-fox',name:'Emberfox',group:'Animals',animal:'fox',fur:'#f08a45',eyes:'#57d6c1',style:0},
+  {id:'animal-cat',name:'Comet Cat',group:'Animals',animal:'cat',fur:'#b78bea',eyes:'#f6d45b',style:1},
+  {id:'animal-bear',name:'Moss Bear',group:'Animals',animal:'bear',fur:'#a87556',eyes:'#8ee0ad',style:2},
+  {id:'animal-rabbit',name:'Moon Rabbit',group:'Animals',animal:'rabbit',fur:'#e8d8ec',eyes:'#63bce9',style:3},
+  {id:'animal-owl',name:'Pocket Owl',group:'Animals',animal:'owl',fur:'#c98c55',eyes:'#f5ce64',style:4},
+  {id:'animal-frog',name:'Jade Hopper',group:'Animals',animal:'frog',fur:'#61ba78',eyes:'#ffe27a',style:0},
+  {id:'animal-otter',name:'River Otter',group:'Animals',animal:'otter',fur:'#a87558',eyes:'#73d5dd',style:1},
+  {id:'animal-penguin',name:'Pepper Penguin',group:'Animals',animal:'penguin',fur:'#526783',eyes:'#ffc867',style:2},
+  {id:'animal-deer',name:'Starling Deer',group:'Animals',animal:'deer',fur:'#c98b62',eyes:'#78d6a2',style:3},
+  {id:'animal-tiger',name:'Solar Tiger',group:'Animals',animal:'tiger',fur:'#ed9d3e',eyes:'#72c9ef',style:4}
+];
+
+function defaultData(){
+  return {
+    classes:[],
+    assignments:[],
+    settings:{
+      wall:{type:'css',value:WALLS[0][1]},
+      time:'16:00',
+      buddyName:'Zippy',
+      buddyColor:'#ffd84d',
+      buddyDesign:'😀',
+      cheer:3,
+      font:'atkinson'
+    }
+  };
+}
+function normalizeReminder(assignment,defaultTime='16:00'){
+  const source=assignment&&assignment.reminder&&typeof assignment.reminder==='object'
+    ?assignment.reminder:{};
+
+  return {
+    enabled:source.enabled!==false,
+    mode:source.mode==='custom'?'custom':'default',
+    time:/^\d{2}:\d{2}$/.test(source.time||'')?source.time:defaultTime,
+    dates:Array.isArray(source.dates)
+      ?[...new Set(source.dates.filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))].sort()
+      :[],
+    after:['daily','default','stop'].includes(source.after)?source.after:'default'
+  };
+}
+
+function normalizeAssignment(assignment,defaultTime){
+  const item=assignment&&typeof assignment==='object'?assignment:{};
+  return {...item,reminder:normalizeReminder(item,defaultTime)};
+}
+function normalizeData(data){
+  const defaults=defaultData();
+  const source=data&&typeof data==='object'?data:{};
+  const settings=source.settings&&typeof source.settings==='object'?source.settings:{};
+  const validFont=FONTS.some(font=>font.id===settings.font)?settings.font:defaults.settings.font;
+  return {
+    ...source,
+    classes:Array.isArray(source.classes)?source.classes:[],
+    assignments:Array.isArray(source.assignments)   ?source.assignments.map(item=>normalizeAssignment(item,settings.time||defaults.settings.time))   :[],
+    settings:{
+      ...defaults.settings,
+      ...settings,
+      wall:settings.wall&&typeof settings.wall==='object'?settings.wall:defaults.settings.wall,
+      time:settings.time||defaults.settings.time,
+      buddyName:settings.buddyName||defaults.settings.buddyName,
+      buddyColor:settings.buddyColor||defaults.settings.buddyColor,
+      buddyDesign:settings.buddyDesign||defaults.settings.buddyDesign,
+      cheer:Number.isFinite(Number(settings.cheer))?Number(settings.cheer):defaults.settings.cheer,
+      font:validFont
+    }
+  };
+}
+
+function load(){
+  try{
+    const stored=JSON.parse(localStorage.getItem(KEY));
+    if(stored&&Array.isArray(stored.classes))return normalizeData(stored);
+  }catch(e){}
+  return defaultData();
+}
+
+let S=load();
+let view='home';
+let filter='active';
+let syncTimer;
+let zippyTimer;
+
+function applyFont(){
+  const selected=FONTS.find(font=>font.id===S.settings.font)||FONTS[0];
+  document.documentElement.style.setProperty('--planner-font',selected.stack);
+}
+
+function save(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(S));
+  }catch(e){
+    toast('Could not save (storage full?). Try a smaller wallpaper.');
+  }
+  scheduleSync();
+}
+
+/* ---------- GitHub sync ---------- */
+function syncCfg(){
+  try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}
+  catch(e){return {}}
+}
+
+function scheduleSync(){
+  const cfg=syncCfg();
+  if(!cfg.repo||!cfg.token)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncNow(false),1500);
+}
+
+async function syncNow(verbose){
+  const cfg=syncCfg();
+  if(!cfg.repo||!cfg.token){
+    if(verbose)toast('Add your repo and token in Settings first.');
+    return;
+  }
+
+  const url=`https://api.github.com/repos/${cfg.repo}/contents/assignments.json`;
+  const headers={
+    Authorization:'Bearer '+cfg.token,
+    Accept:'application/vnd.github+json'
+  };
+
+  try{
+    let sha;
+    const getResponse=await fetch(url,{headers});
+    if(getResponse.ok){
+      sha=(await getResponse.json()).sha;
+    }else if(getResponse.status!==404){
+      throw new Error('GitHub said '+getResponse.status+' (check repo name and token)');
+    }
+
+    const data={
+      name:S.settings.name,
+      classes:S.classes,
+      assignments:S.assignments,
+      settings:{time:S.settings.time,font:S.settings.font},
+      updated:new Date().toISOString()
+    };
+    const body={
+      message:'Sync planner',
+      content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))))
+    };
+    if(sha)body.sha=sha;
+
+    const putResponse=await fetch(url,{
+      method:'PUT',
+      headers,
+      body:JSON.stringify(body)
+    });
+    if(!putResponse.ok){
+      throw new Error('GitHub said '+putResponse.status+' (token needs Contents: read & write)');
+    }
+    if(verbose)toast('Synced to GitHub ✓');
+  }catch(e){
+    toast('Sync failed: '+e.message);
+  }
+}
+
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+}[char]));
+
+function todayStr(){
+  const date=new Date();
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+
+function daysUntil(due){
+  if(!due)return null;
+  return Math.round((new Date(due+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/864e5);
+}
+
+function cls(id){return S.classes.find(item=>item.id===id)}
+
+function prettyDate(date){
+  return new Date(date+'T00:00:00').toLocaleDateString(undefined,{
+    weekday:'short',
+    month:'short',
+    day:'numeric'
+  });
+}
+
+/* ---------- original character artwork ---------- */
+function buddyArtwork(id){
+  const buddy=BUDDIES.find(item=>item.id===id);
+  if(!buddy||buddy.emoji)return '';
+
+  const motion=buddy.style%4;
+  const animal=buddy.animal;
+  const fur=buddy.fur||buddy.skin;
+  const hair=buddy.hair||fur;
+  const eyes=buddy.eyes||'#5367d5';
+  const characterType=animal?'animal':buddy.group.toLowerCase();
+  const outfit=buddy.group==='Villains'?'#453750':buddy.group==='Heroes'?'#465a9d':'#5867c9';
+
+  let ears='';
+  if(animal==='rabbit'){
+    ears='<path d="M37 34Q25 2 34 4Q45 4 46 33M54 33Q56 3 66 8Q74 13 62 35" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><path d="M37 27Q33 10 36 10M59 27Q62 12 65 13" fill="none" stroke="#f8b8c5" stroke-width="4"/>';
+  }else if(animal==='bear'||animal==='otter'){
+    ears='<circle cx="29" cy="31" r="10" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><circle cx="71" cy="31" r="10" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='owl'){
+    ears='<path d="M30 36L34 16L45 31M70 36L66 16L55 31" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='frog'){
+    ears='<circle cx="34" cy="27" r="12" fill="'+fur+'" stroke="#33263d" stroke-width="3"/><circle cx="66" cy="27" r="12" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }else if(animal==='deer'){
+    ears='<path d="M34 37L24 25L14 17L22 30L15 34M66 37L76 25L86 17L78 30L85 34" fill="none" stroke="'+fur+'" stroke-width="6" stroke-linecap="round"/><path d="M39 25L35 12M61 25L65 12" stroke="'+fur+'" stroke-width="4" stroke-linecap="round"/>';
+  }else{
+    ears='<path d="M29 40L28 16L47 33M71 40L72 16L53 33" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>';
+  }
+
+  let animalFace='';
+  if(animal==='penguin'){
+    animalFace='<ellipse cx="50" cy="61" rx="18" ry="17" fill="#f8f4e9"/><path d="M45 59L50 64L55 59Z" fill="#f2a83b"/>';
+  }else if(animal){
+    animalFace='<ellipse cx="50" cy="62" rx="12" ry="9" fill="'+(animal==='fox'||animal==='tiger'?'#f8d7b9':'#f3d9c9')+'"/><path d="M47 58L50 61L53 58Z" fill="#583b45"/>';
+    if(animal==='tiger')animalFace+='<path d="M31 49L40 53M69 49L60 53M34 62L41 63M66 62L59 63" stroke="#573345" stroke-width="3" stroke-linecap="round"/>';
+    if(animal==='fox')animalFace+='<path d="M35 57L42 61M65 57L58 61" stroke="#fff1d7" stroke-width="3" stroke-linecap="round"/>';
+    if(animal==='owl')animalFace+='<circle cx="39" cy="53" r="12" fill="#f4e4bc"/><circle cx="61" cy="53" r="12" fill="#f4e4bc"/>';
+  }
+
+  const hairShapes=[
+    '<path d="M24 49Q19 22 38 20Q51 8 64 20Q84 22 76 51L66 39L59 47L51 35L41 47L34 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M23 49Q17 22 35 20L30 12L45 20L54 11L57 21L73 17Q84 32 76 51L66 40L58 46L49 36L40 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M24 48Q20 19 41 20L36 12L49 18L62 11L61 21Q82 20 76 51L67 41L58 46L50 34L41 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M23 49Q18 23 35 20Q50 12 65 20Q83 24 76 51L68 38Q62 48 55 42L50 33L43 45L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>',
+    '<path d="M24 49Q20 21 38 20L34 13L48 19L60 12L61 21Q82 22 76 51L66 40L58 45L50 35L41 46L33 39Z" fill="'+hair+'" stroke="#33263d" stroke-width="3" stroke-linejoin="round"/>'
+  ];
+
+  const sword=buddy.sword
+    ?'<g class="buddy-sword"><path class="buddy-sword-glow" d="M78 4L91 48L78 63L65 48Z" fill="'+buddy.sword+'" opacity=".35" transform="scale(1.18) translate(-12 -5)"/><g stroke="#33263d" stroke-width="2.5" stroke-linejoin="round"><path d="M78 4L88 49L78 62L68 49Z" fill="'+buddy.sword+'"/><path d="M78 7L78 58" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M66 59L90 59L86 65L70 65Z" fill="#f6c65b"/><path d="M78 65L78 82" stroke="#70452f" stroke-width="6"/><path d="M73 82L83 82L78 91Z" fill="#f6c65b"/></g></g>'
+    :'';
+
+  const head=animal
+    ?'<ellipse cx="50" cy="52" rx="27" ry="29" fill="'+fur+'" stroke="#33263d" stroke-width="3"/>'
+    :'<path d="M50 22Q76 22 76 49L73 64Q68 80 50 82Q32 80 27 64L24 49Q24 22 50 22Z" fill="'+buddy.skin+'" stroke="#33263d" stroke-width="3"/>';
+
+  const faceColor=animal?fur:buddy.skin;
+  const eyesMarkup=
+    '<ellipse cx="40" cy="52" rx="7" ry="9" fill="#fff"/>'+
+    '<ellipse cx="60" cy="52" rx="7" ry="9" fill="#fff"/>'+
+    '<ellipse cx="41" cy="53" rx="4" ry="6" fill="'+eyes+'"/>'+
+    '<ellipse cx="59" cy="53" rx="4" ry="6" fill="'+eyes+'"/>'+
+    '<circle cx="42" cy="51" r="1.7" fill="#fff"/>'+
+    '<circle cx="60" cy="51" r="1.7" fill="#fff"/>'+
+    '<path d="M44 70Q50 75 56 70" fill="none" stroke="#7b4351" stroke-width="2.5" stroke-linecap="round"/>'+
+    '<g class="buddy-blink" fill="none" stroke="'+faceColor+'" stroke-width="9" stroke-linecap="round"><path d="M33 53Q40 60 47 53M53 53Q60 60 67 53"/></g>';
+
+  let accessory='';
+  if(!animal&&buddy.group==='Heroes'){
+    accessory='<path d="M35 30L50 13L65 30L58 27L50 32L42 27Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/><circle cx="50" cy="23" r="3" fill="#fff4b8"/>';
+  }else if(!animal&&buddy.group==='Villains'){
+    accessory='<path d="M32 29L28 13L42 23L50 10L58 23L72 13L68 31Q50 23 32 31Z" fill="#59426f" stroke="#33263d" stroke-width="2.5"/><circle cx="50" cy="24" r="3" fill="'+eyes+'"/>';
+  }
+
+  const bodyMark=!animal
+    ?(buddy.group==='Villains'
+      ?'<path d="M50 83L55 89L50 96L45 89Z" fill="'+eyes+'" stroke="#33263d" stroke-width="2"/>'
+      :'<path d="M50 81L55 87L50 93L45 87Z" fill="#f6c65b" stroke="#33263d" stroke-width="2"/>')
+    :'';
+
+  const hairMarkup=animal?'':hairShapes[buddy.style];
+  const auraColor=buddy.sword||eyes;
+
+  return '<svg class="buddy-art motion-'+motion+' '+characterType+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
+    +'<g class="buddy-aura" fill="none" stroke="'+auraColor+'" stroke-width="2"><circle cx="50" cy="52" r="43" stroke-dasharray="4 7"/><path d="M50 3L53 10L50 17L47 10Z" fill="'+auraColor+'"/><path d="M8 53L15 50L22 53L15 56Z" fill="'+auraColor+'"/></g>'
+    +'<path class="buddy-spark" d="M15 37L18 44L25 47L18 50L15 57L12 50L5 47L12 44Z" fill="#fff6a8"/>'
+    +'<path class="buddy-spark delay" d="M83 31L86 37L92 40L86 43L83 49L80 43L74 40L80 37Z" fill="'+auraColor+'"/>'
+    +'<g class="buddy-body"><path d="M21 98Q23 77 50 76Q77 77 79 98Z" fill="'+outfit+'" stroke="#33263d" stroke-width="3"/><path d="M40 79L50 91L60 79" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>'+bodyMark+'</g>'
+    +'<g class="buddy-arm"><path d="M24 83L14 93M76 83L86 93" stroke="'+outfit+'" stroke-width="9" stroke-linecap="round"/><circle cx="14" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/><circle cx="86" cy="94" r="5" fill="'+(animal?fur:buddy.skin)+'" stroke="#33263d" stroke-width="2"/></g>'
+    +sword+ears+head
+    +(animal?'':'<g class="buddy-hair">'+hairMarkup+'</g>')
+    +accessory+eyesMarkup+animalFace
+    +'</svg>';
+}
+
+function buddyPreview(id){
+  const buddy=BUDDIES.find(item=>item.id===id);
+  if(buddy&&buddy.emoji){
+    return '<span class="buddy-emoji" aria-hidden="true">'+buddy.emoji+'</span>';
+  }
+  return buddyArtwork(id);
+}
+
+/* ---------- wallpaper ---------- */
+function applyWall(){
+  const wall=S.settings.wall||{type:'css',value:WALLS[0][1]};
+  if(wall.type==='image'){
+    document.body.style.background=`url("${wall.value}") center/cover fixed`;
+  }else{
+    document.body.style.background=wall.value||WALLS[0][1];
+  }
+}
+
+/* ---------- modals ---------- */
+function modal(build){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.className='overlay';
+    const box=document.createElement('div');
+    box.className='box';
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    let closed=false;
+    const close=value=>{
+      if(closed)return;
+      closed=true;
+      overlay.remove();
+      resolve(value);
+    };
+
+    overlay.addEventListener('click',event=>{
+      if(event.target===overlay)close(null);
+    });
+    build(box,close);
+  });
+}
+
+function choose(title,options){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>${esc(title)}</h3>`;
+    options.forEach(option=>{
+      const button=document.createElement('button');
+      button.textContent=option.label;
+      if(option.cls)button.className=option.cls;
+      button.onclick=()=>close(option.value);
+      box.appendChild(button);
+    });
+    const cancel=document.createElement('button');
+    cancel.textContent='Cancel';
+    cancel.className='danger';
+    cancel.onclick=()=>close(null);
+    box.appendChild(cancel);
+  });
+}
+
+function ask(title,placeholder,initial=''){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>${esc(title)}</h3><input type="text" placeholder="${esc(placeholder)}" value="${esc(initial)}"><button class="pri">OK</button><button class="danger">Cancel</button>`;
+    const input=box.querySelector('input');
+    const [ok,cancel]=box.querySelectorAll('button');
+
+    const submit=()=>{
+      const value=input.value.trim();
+      if(value)close(value);
+      else input.focus();
+    };
+
+    ok.onclick=submit;
+    cancel.onclick=()=>close(null);
+    input.addEventListener('keydown',event=>{
+      if(event.key==='Enter')submit();
+    });
+    setTimeout(()=>input.focus(),50);
+  });
+}
+
+function dateModal(initial){
+  return modal((box,close)=>{
+    box.innerHTML=`<h3>When is it due?</h3>
+      <input type="date" value="${esc(initial||'')}">
+      <button class="pri">Save date</button>
+      <button class="ok">Custom time</button>
+      <button>No due date</button>
+      <button class="danger">Cancel</button>`;
+
+    const input=box.querySelector('input');
+    const [saveDate,customTime,noDate,cancel]=box.querySelectorAll('button');
+
+    saveDate.onclick=()=>{
+      if(input.value)close(input.value);
+      else input.focus();
+    };
+
+    customTime.onclick=()=>close('CUSTOM');
+    noDate.onclick=()=>close('NA');
+    cancel.onclick=()=>close(null);
+  });
+}
+  
+  function timeParts(value){
+  const [hour,minute]=String(value||'16:00').split(':').map(Number);
+  return {
+    hour12:hour%12||12,
+    minute:Math.round(minute/10)*10%60,
+    period:hour>=12?'PM':'AM'
+  };
+}
+
+function to24Hour(hour,minute,period){
+  const hours=(Number(hour)%12)+(period==='PM'?12:0);
+  return String(hours).padStart(2,'0')+':'+
+    String(Number(minute)).padStart(2,'0');
+}
+
+function timeParts(value){
+  const [h = 16, m = 0] =
+    String(value || '16:00').split(':').map(Number);
+
+  return {
+    hour12: h % 12 || 12,
+    minute: m,
+    period: h >= 12 ? 'PM' : 'AM'
+  };
+}
+
+  function reminderModal(initial){
+  const reminder=normalizeReminder({reminder:initial},S.settings.time||'16:00');
+
+  return modal((box,close)=>{
+    let mode=reminder.mode;
+    let dates=[...reminder.dates];
+    let after=reminder.after;
+
+    const draw=()=>{
+      const parts=timeParts(reminder.time);
+
+      box.innerHTML=`<h3>Reminder schedule</h3>
+        <p class="small">Choose this assignment's reminder schedule.</p>
+
+        <button type="button" data-mode="default"
+          class="${mode==='default'?'pri':''}">
+          Use default
+        </button>
+
+        <button type="button" data-mode="custom"
+          class="${mode==='custom'?'pri':''}">
+          Custom time
+        </button>
+
+        <div id="default_schedule" ${mode==='default'?'':'hidden'}>
+          <label>Hour</label>
+          <select id="r_hour">
+            ${Array.from({length:12},(_,i)=>i+1).map(hour =>
+              `<option ${hour===parts.hour12?'selected':''}>${hour}</option>`
+            ).join('')}
+          </select>
+
+          <label>Minute</label>
+          <select id="r_minute">
+            ${Array.from({length:6},(_,i)=>i*10).map(minute =>
+              `<option value="${String(minute).padStart(2,'0')}"
+                ${minute===parts.minute?'selected':''}>
+                ${String(minute).padStart(2,'0')}
+              </option>`
+            ).join('')}
+          </select>
+
+          <label>AM/PM</label>
+          <select id="r_period">
+            <option ${parts.period==='AM'?'selected':''}>AM</option>
+            <option ${parts.period==='PM'?'selected':''}>PM</option>
+          </select>
+
+          <p class="small">Uses the device's local clock and time zone.</p>
+        </div>
+
+        <div id="custom_schedule" ${mode==='custom'?'':'hidden'}>
+          <label>Choose reminder dates</label>
+          <input type="date" id="r_date" min="${todayStr()}">
+          <button type="button" id="r_add_date">Add date</button>
+
+          <div id="r_dates"></div>
+
+          <p class="small">
+            <strong>After the final selected custom reminder date:</strong>
+          </p>
+
+          <label>
+            <input type="checkbox" data-after="daily"
+              ${after==='daily'?'checked':''}>
+            After the final day, remind me each day.
+          </label>
+
+          <label>
+            <input type="checkbox" data-after="default"
+              ${after==='default'?'checked':''}>
+            After the final day, remind me on a default schedule.
+          </label>
+
+          <label>
+            <input type="checkbox" data-after="stop"
+              ${after==='stop'?'checked':''}>
+            After the final day, don't remind me anymore on this assignment.
+          </label>
+        </div>
+
+        <button type="button" id="r_disable"
+          style="color:#dc2626;font-weight:700">
+          Don't remind me on this assignment
+        </button>
+
+        <button type="button" class="pri" id="r_continue">
+          Continue
+        </button>
+
+        <button type="button" class="danger" id="r_cancel">
+          Cancel
+        </button>`;
+
+      box.querySelectorAll('[data-mode]').forEach(button=>{
+        button.onclick=()=>{
+          mode=button.dataset.mode;
+          draw();
+        };
+      });
+
+      const hour=box.querySelector('#r_hour');
+      const minute=box.querySelector('#r_minute');
+      const period=box.querySelector('#r_period');
+
+      if(hour&&minute&&period){
+        [hour,minute,period].forEach(select=>{
+          select.onchange=()=>{
+            reminder.time=to24Hour(hour.value,minute.value,period.value);
+          };
+        });
+      }
+
+      const datesBox=box.querySelector('#r_dates');
+
+      if(datesBox){
+        datesBox.innerHTML=dates.length
+          ?dates.map(date=>`
+              <div class="small">
+                ${esc(prettyDate(date))}
+                <button type="button" data-remove-date="${esc(date)}">
+                  Remove
+                </button>
+              </div>
+            `).join('')
+          :'<p class="small">No custom dates selected yet.</p>';
+
+        box.querySelectorAll('[data-remove-date]').forEach(button=>{
+          button.onclick=()=>{
+            dates=dates.filter(date=>date!==button.dataset.removeDate);
+            draw();
+          };
+        });
+
+        box.querySelector('#r_add_date').onclick=()=>{
+          const input=box.querySelector('#r_date');
+
+          if(input.value&&!dates.includes(input.value)){
+            dates.push(input.value);
+            dates.sort();
+            draw();
+          }else{
+            input.focus();
+          }
+        };
+      }
+
+      box.querySelectorAll('[data-after]').forEach(checkbox=>{
+        checkbox.onchange=()=>{
+          after=checkbox.checked?checkbox.dataset.after:null;
+
+          box.querySelectorAll('[data-after]').forEach(option=>{
+            option.checked=option.dataset.after===after;
+          });
+
+          updateContinue();
+        };
+      });
+
+      const updateContinue=()=>{
+        const valid=mode==='default'||(dates.length>0&&after!==null);
+
+        box.querySelector('#r_continue').disabled=!valid;
+      };
+
+      updateContinue();
+
+      box.querySelector('#r_disable').onclick=()=>{
+        const confirmed=confirm(
+          "Is this what you want? You won't get reminders on this assignment."
+        );
+
+        if(confirmed){
+          close({...reminder,enabled:false,mode,dates,after});
+        }
+      };
+
+      box.querySelector('#r_continue').onclick=()=>{
+        if(mode==='custom'&&(!dates.length||after===null))return;
+
+        close({
+          enabled:true,
+          mode,
+          time:reminder.time,
+          dates:mode==='custom'?dates:[],
+          after:mode==='custom'?after:'default'
+        });
+      };
+
+      box.querySelector('#r_cancel').onclick=()=>close(null);
+    };
+
+    draw();
+  });
+}
+/* ---------- classes ---------- */
+async function addClass(){
+  const name=await ask('Class name','e.g. Calculus');
+  if(!name)return;
+
+  const category=await choose('Which category is "'+name+'"?',[
+    {label:'Academic',value:'academic',cls:'pri'},
+    {label:'Other (sports, chess, clubs...)',value:'other'}
+  ]);
+  if(!category)return;
+
+  S.classes.push({id:uid(),name,cat:category});
+  save();
+  render();
+}
+
+async function manageClasses(){
+  await modal((box,close)=>{
+    const draw=()=>{
+      box.innerHTML='<h3>Your classes</h3>'+(S.classes.length?'':'<p class="small">No classes yet.</p>');
+
+      S.classes.forEach(item=>{
+        const button=document.createElement('button');
+        button.innerHTML=`<span class="chip ${item.cat==='academic'?'academic':'other'}">${item.cat==='academic'?'Academic':'Other'}</span> ${esc(item.name)}`;
+        button.onclick=async()=>{
+          const action=await choose(item.name,[
+            {label:'Rename',value:'r'},
+            {label:'Change category',value:'c'},
+            {label:'Delete',value:'d',cls:'danger'}
+          ]);
+
+          if(action==='r'){
+            const newName=await ask('Rename class','Class name',item.name);
+            if(newName)item.name=newName;
+          }
+          if(action==='c'){
+            const newCategory=await choose('Category for '+item.name,[
+              {label:'Academic',value:'academic'},
+              {label:'Other',value:'other'}
+            ]);
+            if(newCategory)item.cat=newCategory;
+          }
+          if(action==='d'&&confirm('Delete '+item.name+'? Its assignments stay but lose their class.')){
+            S.classes=S.classes.filter(existing=>existing!==item);
+          }
+
+          save();
+          draw();
+          render();
+        };
+        box.appendChild(button);
+      });
+
+      const add=document.createElement('button');
+      add.className='pri';
+      add.textContent='+ Add class';
+      add.onclick=async()=>{await addClass();draw()};
+
+      const done=document.createElement('button');
+      done.textContent='Done';
+      done.onclick=()=>close(1);
+      box.append(add,done);
+    };
+
+    draw();
+  });
+}
+
+/* ---------- new assignment wizard ---------- */
+async function newAssignment(){
+  if(!S.classes.length){
+    toast('Add a class first!');
+    await addClass();
+    if(!S.classes.length)return;
+  }
+
+  const title=await ask('Assignment title','e.g. Calculus unit test');
+  if(!title)return;
+
+  const classId=await choose(
+    'Which class is this for?',
+    S.classes.map(item=>({
+      label:item.name+(item.cat==='other'?'  (other)':''),
+      value:item.id
+    }))
+  );
+  if(!classId)return;
+
+  const type=await choose(
+    'What type of assignment is this?',
+    Object.entries(TYPES).map(([value,label])=>({label,value}))
+  );
+  if(!type)return;
+
+  let subtitle='';
+  if(type==='project'||type==='other'){
+    const value=await ask('Give it a subtitle','e.g. Poster, Lab report, Chess tournament');
+    if(!value)return;
+    subtitle=value;
+  }
+
+    const dueChoice=await dateModal('');
+  if(!dueChoice)return;
+
+  const due=dueChoice==='NA'||dueChoice==='CUSTOM'?null:dueChoice;
+
+  const initialReminder=normalizeReminder({
+    reminder:{
+      mode:dueChoice==='CUSTOM'?'custom':'default',
+      time:S.settings.time||'16:00'
+    }
+  },S.settings.time||'16:00');
+
+  const reminder=await reminderModal(initialReminder);
+  if(!reminder)return;
+
+  S.assignments.push({
+    id:uid(),
+    title,
+    classId,
+    type,
+    subtitle,
+    due,
+    reminder,
+    notes:'',
+    done:false,
+    last:''
+  });
+
+  save();
+  view='list';
+  filter='active';
+  render();
+  toast('Added! Reminders are set.');
+  checkReminders();
+}
+
+/* ---------- edit assignment ---------- */
+function editAssignment(id){
+  const assignment=S.assignments.find(item=>item.id===id);
+  if(!assignment)return;
+
+  modal((box,close)=>{
+    box.innerHTML=`<h3>Edit assignment</h3>
+    <label>Title</label><input type="text" id="e_t" value="${esc(assignment.title)}">
+    <label>Class</label><select id="e_c">${S.classes.map(item=>`<option value="${esc(item.id)}" ${item.id===assignment.classId?'selected':''}>${esc(item.name)}</option>`).join('')}</select>
+    <label>Type</label><select id="e_y">${Object.entries(TYPES).map(([value,label])=>`<option value="${value}" ${value===assignment.type?'selected':''}>${label}</option>`).join('')}</select>
+    <label>Subtitle (optional)</label><input type="text" id="e_s" value="${esc(assignment.subtitle||'')}">
+    <label>Due date</label><input type="date" id="e_d" value="${esc(assignment.due||'')}">
+<label><input type="checkbox" id="e_n" ${assignment.due?'':'checked'}> No due date</label>
+
+<label style="margin-top:10px">Reminder schedule</label>
+<button type="button" id="e_reminder">Configure reminders</button>
+
+<label style="margin-top:10px">Notes / commentary</label><textarea id="e_o">${esc(assignment.notes||'')}</textarea>
+    <button class="pri" id="e_save">Save</button>
+    <button class="ok" id="e_done">${assignment.done?'Reactivate (turn reminders back on)':'Mark done (turn reminders off)'}</button>
+    <button class="danger" id="e_del">Delete</button>
+    <button id="e_x">Close</button>`;
+
+    const get=id=>box.querySelector('#'+id);
+        let reminderDraft=normalizeReminder(
+      assignment,
+      S.settings.time||'16:00'
+    );
+
+    const updateReminderButton=()=>{
+      if(!reminderDraft.enabled){
+        get('e_reminder').textContent="Don't remind me on this assignment";
+        get('e_reminder').style.color='#dc2626';
+      }else if(reminderDraft.mode==='custom'){
+        get('e_reminder').textContent='Custom time — '+reminderDraft.time;
+        get('e_reminder').style.color='';
+      }else{
+        get('e_reminder').textContent='Use default — '+reminderDraft.time;
+        get('e_reminder').style.color='';
+      }
+    };
+
+    updateReminderButton();
+
+    get('e_reminder').onclick=async()=>{
+      const updated=await reminderModal(reminderDraft);
+      if(updated){
+        reminderDraft=updated;
+        updateReminderButton();
+      }
+    };
+
+    get('e_save').onclick=()=>{
+      assignment.title=get('e_t').value.trim()||assignment.title;
+      assignment.classId=get('e_c').value;
+      assignment.type=get('e_y').value;
+      assignment.subtitle=get('e_s').value.trim();
+      assignment.due=get('e_n').checked?null:(get('e_d').value||null);
+      assignment.reminder=reminderDraft;
+      assignment.notes=get('e_o').value;
+      assignment.last='';
+      save();
+      close(1);
+      render();
+      toast('Saved');
+      checkReminders();
+    };
+
+    get('e_done').onclick=()=>{
+      assignment.done=!assignment.done;
+      assignment.last='';
+      save();
+      close(1);
+      render();
+    };
+
+    get('e_del').onclick=()=>{
+      if(confirm('Delete this assignment?')){
+        S.assignments=S.assignments.filter(item=>item!==assignment);
+        save();
+        close(1);
+        render();
+      }
+    };
+
+    get('e_x').onclick=()=>close(null);
+  });
+}
+
+/* ---------- settings ---------- */
+function settingsModal(){
+  modal((box,close)=>{
+    const permission=('Notification' in window)?Notification.permission:'unsupported';
+
+    box.innerHTML=`<h3>Settings</h3>
+    <label>Your name</label><input type="text" id="s_name" value="${esc(S.settings.name||'')}">
+
+    <section class="buddy-settings" aria-labelledby="font-settings-title">
+      <h4 id="font-settings-title">Reading font</h4>
+      <label>Choose a font</label>
+      <div class="font-picker" id="s_font_choices">
+        ${FONTS.map(font=>`
+          <button type="button" class="font-option ${S.settings.font===font.id?'selected':''}" data-font="${font.id}" aria-pressed="${S.settings.font===font.id?'true':'false'}">
+            <span class="font-option-name" style="font-family:${font.stack}">${esc(font.name)}</span>
+            <span class="font-option-preview" style="font-family:${font.stack}">Aa Bb Cc — The quick brown fox jumps over the lazy dog.</span>
+          </button>
+        `).join('')}
+      </div>
+    </section>
+
+    <section class="buddy-settings" aria-labelledby="buddy-settings-title">
+      <h4 id="buddy-settings-title">Zippy</h4>
+      <label>Zippy's name</label><input type="text" id="s_buddy" value="${esc(S.settings.buddyName)}">
+      <label>Zippy's color</label><input type="color" id="s_buddy_color" value="${esc(S.settings.buddyColor)}">
+      <label>Choose Zippy's look</label>
+      <div id="s_buddy_choices"></div>
+      <label>Zippy cheer level: <span id="s_cheer_value">${S.settings.cheer}</span></label>
+      <input type="range" id="s_cheer" min="0" max="5" value="${S.settings.cheer}">
+    </section>
+
+    <label>Wallpaper</label>
+    <div class="walls">${WALLS.map((wall,index)=>`<button data-w="${index}" style="background:${wall[1]}" title="${wall[0]}" aria-label="${wall[0]}"></button>`).join('')}</div>
+    <label>Custom color</label><input type="color" id="s_col" style="width:100%;height:44px;border:0;margin-bottom:10px">
+    <label>Your own picture</label><input type="file" accept="image/*" id="s_img" style="margin-bottom:10px">
+    <label>Daily reminder time</label><input type="time" id="s_time" value="${esc(S.settings.time)}">
+    <label>GitHub sync: your repo (username/repo-name)</label><input type="text" id="s_repo" placeholder="yourname/planner" value="${esc(syncCfg().repo||'')}">
+    <label>GitHub token</label><input type="password" id="s_tok" placeholder="paste token" value="${esc(syncCfg().token||'')}">
+    <button id="s_sync">Save &amp; sync now</button>
+    <button id="s_export">Export Data</button>
+    <button id="s_import">Import Data</button>
+    <input type="file" id="s_file" accept="application/json,.json" hidden>
+    <button id="s_n">Notifications: ${permission==='granted'?'ON ✓ (send a test)':'tap to enable'}</button>
+    <button class="pri" id="s_ok">Done</button>`;
+
+    const get=id=>box.querySelector('#'+id);
+
+    box.querySelectorAll('[data-font]').forEach(button=>{
+      button.onclick=()=>{
+        S.settings.font=button.dataset.font;
+        save();
+        applyFont();
+        box.querySelectorAll('[data-font]').forEach(option=>{
+          const selected=option.dataset.font===S.settings.font;
+          option.classList.toggle('selected',selected);
+          option.setAttribute('aria-pressed',selected?'true':'false');
+        });
+      };
+    });
+
+    function drawBuddyChoices(){
+      const groups=['Emoji','Heroes','Villains','Animals'];
+      get('s_buddy_choices').innerHTML=groups.map(group=>
+        '<div class="buddy-section-title">'+group+'</div>'+
+        '<div class="buddy-picker">'+BUDDIES.filter(item=>item.group===group).map(item=>
+          '<button type="button" class="buddy-option '+(S.settings.buddyDesign===item.id?'selected':'')+'" data-buddy="'+esc(item.id)+'" aria-pressed="'+(S.settings.buddyDesign===item.id)+'">'+
+            buddyPreview(item.id)+
+            '<span class="buddy-option-name">'+esc(item.name)+'</span>'+
+          '</button>'
+        ).join('')+'</div>'
+      ).join('');
+
+      get('s_buddy_choices').querySelectorAll('[data-buddy]').forEach(button=>{
+        button.onclick=()=>{
+          S.settings.buddyDesign=button.dataset.buddy;
+          save();
+          updateZippy();
+          drawBuddyChoices();
+        };
+      });
+    }
+    drawBuddyChoices();
+
+    box.querySelectorAll('[data-w]').forEach(button=>{
+      button.onclick=()=>{
+        S.settings.wall={type:'css',value:WALLS[Number(button.dataset.w)][1]};
+        save();
+        applyWall();
+      };
+    });
+
+    get('s_col').oninput=event=>{
+      S.settings.wall={type:'css',value:event.target.value};
+      save();
+      applyWall();
+    };
+
+    get('s_img').onchange=event=>{
+      const file=event.target.files[0];
+      if(!file)return;
+
+      const reader=new FileReader();
+      reader.onload=()=>{
+        const image=new Image();
+        image.onload=()=>{
+          const maxSize=1400;
+          const scale=Math.min(1,maxSize/Math.max(image.width,image.height));
+          const canvas=document.createElement('canvas');
+          canvas.width=Math.round(image.width*scale);
+          canvas.height=Math.round(image.height*scale);
+          canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+          S.settings.wall={
+            type:'image',
+            value:canvas.toDataURL('image/jpeg',.7)
+          };
+          save();
+          applyWall();
+        };
+        image.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    get('s_name').onchange=event=>{
+      const value=event.target.value.trim();
+      if(value){
+        S.settings.name=value;
+        save();
+        render();
+      }
+    };
+
+    get('s_buddy').onchange=event=>{
+      S.settings.buddyName=event.target.value.trim()||'Zippy';
+      save();
+      render();
+      updateZippy();
+    };
+
+    get('s_buddy_color').oninput=event=>{
+      S.settings.buddyColor=event.target.value;
+      save();
+      updateZippy();
+    };
+
+    get('s_cheer').oninput=event=>{
+      S.settings.cheer=Number(event.target.value);
+      get('s_cheer_value').textContent=event.target.value;
+      save();
+    };
+
+    get('s_time').onchange=event=>{
+      S.settings.time=event.target.value||'16:00';
+      save();
+      checkReminders();
+    };
+
+    get('s_n').onclick=async()=>{
+      if(!('Notification' in window)){
+        toast('This browser does not support notifications.');
+        return;
+      }
+
+      let state=Notification.permission;
+      if(state!=='granted')state=await Notification.requestPermission();
+
+      if(state==='granted'){
+        fire((S.settings.name||'My')+"'s Planner",'Notifications are working! 🎉');
+        get('s_n').textContent='Notifications: ON ✓ (send a test)';
+      }else{
+        toast('Notifications are blocked. Allow them in your browser/site settings.');
+      }
+    };
+
+    get('s_sync').onclick=()=>{
+      const repo=get('s_repo').value.trim()
+        .replace(/^https?:\/\/github\.com\//,'')
+        .replace(/\/$/,'');
+      const token=get('s_tok').value.trim();
+
+      try{
+        localStorage.setItem(SYNC_KEY,JSON.stringify({repo,token}));
+      }catch(e){
+        toast('Could not save sync settings in this browser.');
+        return;
+      }
+      syncNow(true);
+    };
+
+    get('s_export').onclick=()=>{
+      const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;
+      link.download='study-planner-backup.json';
+      link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    };
+
+    get('s_import').onclick=()=>get('s_file').click();
+
+    get('s_file').onchange=event=>{
+      const file=event.target.files[0];
+      if(!file)return;
+
+      const reader=new FileReader();
+      reader.onload=()=>{
+        try{
+          const imported=JSON.parse(reader.result);
+          if(!imported||!Array.isArray(imported.classes)||!Array.isArray(imported.assignments)){
+            throw new Error('The selected file is not a planner backup.');
+          }
+          if(!confirm('Import this backup? It will replace the planner data in this browser.')){
+            event.target.value='';
+            return;
+          }
+
+          S=normalizeData(imported);
+          save();
+          applyFont();
+          applyWall();
+          updateZippy();
+          close(1);
+          render();
+          toast('Data imported');
+        }catch(error){
+          toast('Import failed: '+error.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    get('s_ok').onclick=()=>close(1);
+  });
+}
+
+/* ---------- reminders ---------- */
+function fire(title,body){
+  toast(body);
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+
+  const fallback=()=>{
+    try{new Notification(title,{body})}catch(e){}
+  };
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistration()
+      .then(registration=>{
+        if(registration)registration.showNotification(title,{body});
+        else fallback();
+      })
+      .catch(fallback);
+  }else{
+    fallback();
+  }
+}
+
+function message(assignment){
+  const name=S.settings.name||'friend';
+  const classItem=cls(assignment.classId);
+  const days=daysUntil(assignment.due);
+  const className=classItem?` (${classItem.name})`:'';
+  const when=days===null?'':days===0?'today':days===1?'tomorrow':`in ${days} days`;
+  const subtitle=assignment.subtitle?` – ${assignment.subtitle}`:'';
+
+  if(days===null){
+    return `Reminder, ${name}: ${assignment.title}${subtitle}${className}. Turn this off in the app when it's done.`;
+  }
+
+  switch(assignment.type){
+    case 'test':
+      return `Study, ${name}! You need time to study the unit review for ${assignment.title}${className}. Test ${when}.`;
+    case 'quiz':
+      return `Quiz ${when}: ${assignment.title}${className}. Take 20 minutes to review, ${name}.`;
+    case 'homework':
+      return `Homework due ${when}: ${assignment.title}${className}. Knock it out, ${name}.`;
+    case 'project':
+      return `Work on your project "${assignment.title}"${subtitle}${className}. Due ${when}.`;
+    default:
+      return `${assignment.title}${subtitle}${className}: due ${when}.`;
+  }
+}
+
+function defaultScheduleApplies(assignment){
+  const days=daysUntil(assignment.due);
+  return days===null||(days>=0&&days<=(WINDOW[assignment.type]||3));
+}
+
+function reminderAppliesToday(assignment,today){
+  const reminder=normalizeReminder(
+    assignment,
+    S.settings.time||'16:00'
+  );
+
+  if(assignment.done||!reminder.enabled)return false;
+
+  if(reminder.mode!=='custom'){
+    return defaultScheduleApplies(assignment);
+  }
+
+  if(reminder.dates.includes(today))return true;
+
+  const finalDate=reminder.dates[reminder.dates.length-1];
+  if(!finalDate||today<=finalDate)return false;
+
+  if(reminder.after==='daily')return true;
+  if(reminder.after==='default')return defaultScheduleApplies(assignment);
+  return false;
+}
+
+function reminderTimeHasPassed(assignment){
+  const reminder=normalizeReminder(
+    assignment,
+    S.settings.time||'16:00'
+  );
+
+  const [hour,minute]=reminder.time.split(':').map(Number);
+  const now=new Date();
+  return now.getHours()*60+now.getMinutes()>=hour*60+minute;
+}
+
+function dueToday(){
+  const today=todayStr();
+
+  return S.assignments
+    .filter(assignment=>reminderAppliesToday(assignment,today))
+    .map(assignment=>({
+      a:assignment,
+      past:reminderTimeHasPassed(assignment)
+    }));
+}
+
+function checkReminders(){
+  const today=todayStr();
+  let changed=false;
+
+  dueToday().forEach(({a,past})=>{
+    if(past&&a.last!==today){
+      a.last=today;
+      changed=true;
+      fire((S.settings.name||'My')+"'s Planner",message(a));
+    }
+  });
+
+  if(changed)save();
+}
+/* ---------- Zippy ---------- */
+function updateZippy(){
+  const face=document.getElementById('zippy-face');
+  if(!face)return;
+
+  const design=S.settings.buddyDesign||'😀';
+  const buddy=BUDDIES.find(item=>item.id===design);
+
+  if(buddy&&!buddy.emoji){
+    face.innerHTML=buddyArtwork(design);
+  }else{
+    face.textContent=buddy&&buddy.emoji?buddy.emoji:'😀';
+  }
+
+  face.style.backgroundColor=S.settings.buddyColor||'#ffd84d';
+  face.setAttribute('aria-label','Talk to '+(S.settings.buddyName||'Zippy'));
+}
+
+function zippySpeak(messageText){
+  const dock=document.getElementById('zippy-dock');
+  const bubble=document.getElementById('zippy-bubble');
+  if(!dock||!bubble)return;
+
+  updateZippy();
+  bubble.textContent=messageText;
+  bubble.hidden=false;
+
+  const cheer=Number(S.settings.cheer??3);
+  dock.style.setProperty('--zippy-bounce-duration',Math.max(.3,.9-cheer*.12)+'s');
+  dock.classList.remove('is-speaking');
+  void dock.offsetWidth;
+  dock.classList.add('is-speaking');
+
+  clearTimeout(zippyTimer);
+  zippyTimer=setTimeout(()=>{
+    bubble.hidden=true;
+    dock.classList.remove('is-speaking');
+  },4500);
+}
+
+function toast(messageText){
+  const container=document.getElementById('toasts');
+  if(!container)return;
+
+  const element=document.createElement('div');
+  element.className='toast';
+  element.textContent=messageText;
+  container.appendChild(element);
+  setTimeout(()=>element.remove(),6000);
+  zippySpeak(messageText);
+}
+const ZIPPY_TOUR_KEY='zippy-first-tour-complete';
+
+function tourControl(text,{focus=false,primary=false}={}){
+  return `<div class="tour-screen-button${primary?' primary':''}" ${focus?'data-tour-focus':''}>${text}</div>`;
+}
+
+function tourInput(text,{focus=false}={}){
+  return `<div class="tour-screen-input" ${focus?'data-tour-focus':''}>${text}</div>`;
+}
+
+function tourLabel(text){
+  return `<div class="tour-screen-label">${text}</div>`;
+}
+
+function tourWallpapers(focusIndex){
+  return `<div class="tour-wallpapers">
+    ${WALLS.map((wall,index)=>
+      `<div class="tour-wallpaper" title="${esc(wall[0])}"
+        style="background:${wall[1]}"
+        ${index===focusIndex?'data-tour-focus':''}></div>`
+    ).join('')}
+  </div>`;
+}
+
+function tourScreen(scene){
+  switch(scene){
+    case 'class-add':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('＋ New assignment')}
+        ${tourControl('My assignments')}
+        ${tourLabel('Academic classes')}
+        ${tourControl('None yet')}
+        ${tourControl('+ Add class',{focus:true,primary:true})}
+        ${tourControl('Edit classes')}`;
+
+    case 'class-name':
+      return `<div class="tour-screen-title">Class name</div>
+        ${tourInput('Calculus',{focus:true})}
+        ${tourControl('OK',{primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'class-category':
+      return `<div class="tour-screen-title">Which category is “Calculus”?</div>
+        ${tourControl('Academic',{focus:true,primary:true})}
+        ${tourControl('Other (sports, chess, clubs...)')}`;
+
+    case 'assignment-new':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('＋ New assignment',{focus:true,primary:true})}
+        ${tourControl('📋 My assignments (0 active)')}
+        ${tourLabel('Academic classes')}
+        ${tourControl('+ Add class')}
+        ${tourControl('Edit classes')}`;
+
+    case 'assignment-title':
+      return `<div class="tour-screen-title">Assignment title</div>
+        ${tourInput('Calculus Unit Test',{focus:true})}
+        ${tourControl('OK',{primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'assignment-class':
+      return `<div class="tour-screen-title">Which class is this for?</div>
+        ${tourControl('Chemistry')}
+        ${tourControl('Physics')}
+        ${tourControl('Calculus',{focus:true,primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'assignment-type':
+      return `<div class="tour-screen-title">What type of assignment is this?</div>
+        ${tourControl('Test',{focus:true,primary:true})}
+        ${tourControl('Quiz')}
+        ${tourControl('Homework')}
+        ${tourControl('Special project')}
+        ${tourControl('Other')}`;
+
+    case 'assignment-due':
+      return `<div class="tour-screen-title">When is it due?</div>
+        ${tourInput('Choose a due date',{focus:true})}
+        ${tourControl('Save date',{primary:true})}
+        ${tourControl('Custom time')}
+        ${tourControl('No due date')}`;
+
+    case 'reminder-mode':
+      return `<div class="tour-screen-title">Reminder schedule</div>
+        <p>Choose this assignment’s reminder schedule.</p>
+        ${tourControl('Use default',{focus:true,primary:true})}
+        ${tourControl('Custom time')}
+        ${tourControl('Don’t remind me on this assignment')}`;
+
+    case 'reminder-default':
+      return `<div class="tour-screen-title">Default reminder time</div>
+        ${tourLabel('Hour')}
+        ${tourControl('4')}
+        ${tourLabel('Minute')}
+        ${tourControl('00')}
+        ${tourLabel('AM/PM')}
+        ${tourControl('PM',{focus:true})}
+        <p class="small">Uses your device’s local clock and time zone.</p>`;
+
+    case 'reminder-custom':
+      return `<div class="tour-screen-title">Custom reminder schedule</div>
+        ${tourLabel('Choose reminder dates')}
+        ${tourInput('Choose a date',{focus:true})}
+        ${tourControl('Add date')}
+        <p><strong>After the final selected custom reminder date:</strong></p>
+        ${tourControl('Remind me each day')}
+        ${tourControl('Remind me on a default schedule')}
+        ${tourControl('Don’t remind me anymore')}`;
+
+    case 'reminder-finish':
+      return `<div class="tour-screen-title">Reminder schedule</div>
+        ${tourControl('Continue',{focus:true,primary:true})}
+        ${tourControl('Cancel')}`;
+
+    case 'settings-open':
+      return `<div class="tour-screen-title">Your Planner</div>
+        ${tourControl('⚙ Settings',{focus:true})}
+        ${tourControl('＋ New assignment',{primary:true})}
+        ${tourControl('📋 My assignments (0 active)')}
+        ${tourControl('+ Add class')}`;
+
+    case 'settings-wallpaper':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Wallpaper')}
+        ${tourWallpapers(0)}
+        ${tourLabel('Custom color')}
+        ${tourInput('Choose a color')}
+        ${tourLabel('Your own picture')}
+        ${tourInput('Choose a picture',{focus:true})}`;
+
+    case 'settings-font':
+      return `<div class="tour-screen-title">Reading font</div>
+        ${tourLabel('Choose a font')}
+        ${tourControl('Atkinson Hyperlegible',{focus:true})}
+        ${tourControl('OpenDyslexic')}
+        ${tourControl('Lexend')}
+        ${tourControl('Andika')}
+        ${tourControl('Comic Neue')}`;
+
+    case 'settings-zippy':
+      return `<div class="tour-screen-title">Zippy</div>
+        ${tourLabel('Zippy’s name')}
+        ${tourInput('Zippy')}
+        ${tourLabel('Zippy’s color')}
+        ${tourControl('Choose a color',{focus:true})}
+        ${tourLabel('Choose Zippy’s look')}
+        ${tourControl('Emoji · Heroes · Villains · Animals')}
+        ${tourLabel('Zippy cheer level')}
+        ${tourControl('0 ─────●───── 5')}`;
+
+    case 'settings-time':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Daily reminder time')}
+        ${tourInput('4:00 PM',{focus:true})}
+        <p class="small">This is the default reminder time.</p>`;
+
+    case 'settings-notifications':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('Notifications')}
+        ${tourControl('Tap to enable',{focus:true})}
+        <p class="small">Your browser may ask permission to send notifications.</p>`;
+
+    case 'settings-backup':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourControl('Export Data',{focus:true})}
+        ${tourControl('Import Data')}
+        <p class="small">Import replaces the planner data in this browser.</p>`;
+
+    case 'settings-github':
+      return `<div class="tour-screen-title">Settings</div>
+        ${tourLabel('GitHub sync: your repo (username/repo-name)')}
+        ${tourInput('yourname/planner')}
+        ${tourLabel('GitHub token')}
+        ${tourInput('Paste token',{focus:true})}
+        ${tourControl('Save & sync now')}`;
+
+    default:
+      return `<div class="tour-screen-title">Study Planner</div>`;
+  }
+}
+
+async function startZippyTour(){
+  const steps=[
+    {
+      title:'First, add a class',
+      message:'Classes organize your assignments. Choose “+ Add class” to create one.',
+      scene:'class-add'
+    },
+    {
+      title:'Name your class',
+      message:'Type your class name here. This example uses Calculus.',
+      scene:'class-name'
+    },
+    {
+      title:'Choose a category',
+      message:'Choose the category that fits your class: Academic for school subjects, or Other for activities.',
+      scene:'class-category'
+    },
+    {
+      title:'Now add an assignment',
+      message:'Choose “New assignment” to begin adding work.',
+      scene:'assignment-new'
+    },
+    {
+      title:'Type the assignment name',
+      message:'Enter the name of the assignment. This example is “Calculus Unit Test.”',
+      scene:'assignment-title'
+    },
+    {
+      title:'Choose the class',
+      message:'Pick the class this assignment belongs to. Here, Calculus is highlighted.',
+      scene:'assignment-class'
+    },
+    {
+      title:'Choose the type',
+      message:'Because this example is a unit TEST, choose Test.',
+      scene:'assignment-type'
+    },
+    {
+      title:'Choose the due date',
+      message:'Pick a date and save it. You can also choose Custom time or No due date.',
+      scene:'assignment-due'
+    },
+    {
+      title:'Choose a reminder schedule',
+      message:'Use default for the usual reminder schedule, or choose Custom time to select dates. You can also turn reminders off for this assignment.',
+      scene:'reminder-mode'
+    },
+    {
+      title:'Default reminder time',
+      message:'The reminder uses the selected hour, minute, and AM or PM. It follows your device’s local clock and time zone.',
+      scene:'reminder-default'
+    },
+    {
+      title:'Custom reminder dates',
+      message:'Add the dates when you want reminders. After the final date, choose whether reminders continue daily, use the default schedule, or stop.',
+      scene:'reminder-custom'
+    },
+    {
+      title:'Finish creating the assignment',
+      message:'Choose Continue to save the reminder schedule and finish creating the assignment.',
+      scene:'reminder-finish'
+    },
+    {
+      title:'Open Settings',
+      message:'Settings contains the planner’s appearance, reminder, notification, and backup options.',
+      scene:'settings-open'
+    },
+    {
+      title:'Choose a wallpaper',
+      message:'These are the actual wallpaper choices in the app. You can also choose a custom color or your own picture.',
+      scene:'settings-wallpaper'
+    },
+    {
+      title:'Choose a reading font',
+      message:'Choose the font that is easiest for you to read.',
+      scene:'settings-font'
+    },
+    {
+      title:'Personalize Zippy',
+      message:'Change my name, color, character, and cheer level here.',
+      scene:'settings-zippy'
+    },
+    {
+      title:'Set the daily reminder time',
+      message:'This is the default time for reminders. An assignment can have its own custom schedule instead.',
+      scene:'settings-time'
+    },
+    {
+      title:'Notifications',
+      message:'Tap this setting to enable browser notifications. Your browser may ask you to allow them.',
+      scene:'settings-notifications'
+    },
+    {
+      title:'Back up your planner',
+      message:'Export Data downloads a backup. Import Data loads a backup and replaces the planner data in this browser.',
+      scene:'settings-backup'
+    },
+    {
+      title:'Optional GitHub sync',
+      message:'If you don’t have a GitHub account, this does not apply to you. GitHub sync is optional and is for saving planner data to a repository you configure.',
+      scene:'settings-github'
+    },
+    {
+      title:'You’re ready!',
+      message:'That’s how the planner works. Open my menu and choose Re-Tour any time to see this guide again.',
+      scene:'settings-open'
+    }
+  ];
+
+  const overlay=document.createElement('div');
+  overlay.className='zippy-tour';
+  overlay.innerHTML=`
+    <section class="zippy-tour-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="zippy-tour-title">
+      <h2 id="zippy-tour-title"></h2>
+      <div class="zippy-tour-screen"></div>
+      <div class="zippy-tour-buddy">
+        <div class="zippy-tour-buddy-face"></div>
+        <div class="zippy-tour-buddy-message"></div>
+      </div>
+      <p class="zippy-tour-count"></p>
+      <div class="zippy-tour-actions">
+        <button type="button" class="pri" id="zippy-tour-next">Next</button>
+        <button type="button" class="danger" id="zippy-tour-skip">Skip Tour</button>
+      </div>
+    </section>`;
+
+  document.body.appendChild(overlay);
+
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+
+  const dialog=overlay.querySelector('.zippy-tour-dialog');
+  const title=overlay.querySelector('#zippy-tour-title');
+  const screen=overlay.querySelector('.zippy-tour-screen');
+  const buddy=overlay.querySelector('.zippy-tour-buddy');
+  const buddyFace=overlay.querySelector('.zippy-tour-buddy-face');
+  const buddyMessage=overlay.querySelector('.zippy-tour-buddy-message');
+  const count=overlay.querySelector('.zippy-tour-count');
+  const next=overlay.querySelector('#zippy-tour-next');
+  const skip=overlay.querySelector('#zippy-tour-skip');
+
+  const design=S.settings.buddyDesign||'😀';
+  const character=buddyPreview(design);
+  buddyFace.innerHTML=character||'😀';
+  buddyFace.style.backgroundColor=S.settings.buddyColor||'#ffd84d';
+
+  let index=0;
+  let finished=false;
+
+  const placeBuddy=()=>{
+    const focus=screen.querySelector('[data-tour-focus]');
+    if(!focus)return;
+
+   const dialogRect=dialog.getBoundingClientRect();
+const focusRect=focus.getBoundingClientRect();
+    const buddyWidth=buddy.offsetWidth||260;
+    const buddyHeight=buddy.offsetHeight||64;
+
+   let left=focusRect.left-dialogRect.left;
+let top=focusRect.bottom-dialogRect.top+10;
+
+    if(top+buddyHeight>screen.clientHeight){
+      top=focusRect.top-dialogRect.top-buddyHeight-10;
+    }
+
+    left=Math.max(4,Math.min(left,screen.clientWidth-buddyWidth-4));
+    top=Math.max(4,top);
+
+    buddy.style.left=left+'px';
+    buddy.style.top=top+'px';
+  };
+
+  const draw=()=>{
+    const step=steps[index];
+    title.textContent=step.title;
+    screen.innerHTML=tourScreen(step.scene);
+    buddyMessage.textContent=step.message;
+    count.textContent=`Step ${index+1} of ${steps.length}`;
+    next.textContent=index===steps.length-1?'Finish':'Next';
+
+    requestAnimationFrame(placeBuddy);
+  };
+
+  const finish=()=>{
+    if(finished)return;
+    finished=true;
+    try{localStorage.setItem(ZIPPY_TOUR_KEY,'yes')}catch(error){}
+    document.removeEventListener('keydown',trapKeys,true);
+    document.removeEventListener('click',blockOtherClicks,true);
+    document.body.style.overflow=oldOverflow;
+    overlay.remove();
+  };
+
+  const trapKeys=event=>{
+    if(event.key==='Tab'){
+      event.preventDefault();
+      (document.activeElement===next?skip:next).focus();
+      return;
+    }
+    if(event.key==='Escape'){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
+  const blockOtherClicks=event=>{
+    if(event.target===next||event.target===skip)return;
+    if(overlay.contains(event.target)){
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
+  };
+
+  next.onclick=()=>{
+    if(index===steps.length-1){
+      finish();
+      return;
+    }
+    index++;
+    draw();
+  };
+
+  skip.onclick=finish;
+
+  overlay.addEventListener('click',blockOtherClicks,true);
+  document.addEventListener('keydown',trapKeys,true);
+
+  draw();
+  next.focus();
+}
+  const ZIPPY_WHAT_ARE_YOU_KEY='zippy-what-are-you-used';
+
+function zippyMenu(){
+  const backdrop=document.createElement('div');
+  backdrop.className='zippy-menu-backdrop';
+
+  const menu=document.createElement('div');
+  menu.className='zippy-menu';
+  menu.setAttribute('role','dialog');
+  menu.setAttribute('aria-modal','true');
+  menu.setAttribute('aria-label','Zippy choices');
+
+  const title=document.createElement('h3');
+  title.textContent='What would you like to do?';
+  menu.appendChild(title);
+
+  const choices=document.createElement('div');
+  menu.appendChild(choices);
+
+  const closeButton=document.createElement('button');
+  closeButton.textContent='Close';
+  closeButton.className='danger';
+  closeButton.onclick=()=>backdrop.remove();
+  menu.appendChild(closeButton);
+
+  backdrop.appendChild(menu);
+  backdrop.addEventListener('click',event=>{
+    if(event.target===backdrop)backdrop.remove();
+  });
+
+  const addChoice=(label,action)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=label;
+    button.onclick=()=>{
+      backdrop.remove();
+      action();
+    };
+    choices.appendChild(button);
+  };
+
+  let whatUsed=false;
+  try{
+    whatUsed=localStorage.getItem(ZIPPY_WHAT_ARE_YOU_KEY)==='yes';
+  }catch(error){}
+
+  if(!whatUsed){
+    addChoice('What are you?',()=>{
+      try{localStorage.setItem(ZIPPY_WHAT_ARE_YOU_KEY,'yes')}catch(error){}
+      zippySpeak("I'm Zippy, your study buddy! I'm here to cheer you on.");
+    });
+  }
+
+  addChoice('Re-Tour',startZippyTour);
+  addChoice('High five!',startZippyHighFive);
+  document.body.appendChild(backdrop);
+}
+
+function playZippySmack(){
+  try{
+    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextClass)return;
+
+    const context=new AudioContextClass();
+    const oscillator=context.createOscillator();
+    const volume=context.createGain();
+
+    oscillator.type='triangle';
+    oscillator.frequency.setValueAtTime(190,context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(65,context.currentTime+.12);
+    volume.gain.setValueAtTime(.35,context.currentTime);
+    volume.gain.exponentialRampToValueAtTime(.001,context.currentTime+.16);
+
+    oscillator.connect(volume);
+    volume.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime+.16);
+    oscillator.onended=()=>context.close();
+  }catch(error){}
+}
+
+function waitForZippy(milliseconds){
+  return new Promise(resolve=>setTimeout(resolve,milliseconds));
+}
+
+function makeHighFiveStage(dramatic){
+  const stage=document.createElement('div');
+  const cheerLevel=Number(S.settings.cheer||0);
+stage.className='highfive-stage'+(dramatic?' dramatic':'')+
+  (cheerLevel>=5?' level-five':'');
+  stage.setAttribute('aria-live','polite');
+
+  const caption=document.createElement('div');
+  caption.className='highfive-caption';
+  caption.textContent=dramatic
+    ?'ARE YOU READY??? HIGH....FIVE....ME!!!!!!'
+    :'Ready? Tap Zippy for a high five!';
+
+  const flames=document.createElement('div');
+  flames.className='hf-flames';
+  for(let i=0;i<12;i++){
+    const flame=document.createElement('span');
+    flame.style.setProperty('--i',i);
+    flames.appendChild(flame);
+  }
+
+  const cracks=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  cracks.classList.add('hf-cracks');
+  cracks.setAttribute('viewBox','0 0 100 100');
+  cracks.setAttribute('preserveAspectRatio','none');
+  cracks.innerHTML=`
+  <path d="M50 50L43 38L46 27L37 17M43 38L30 40L20 34M46 27L54 19L51 8
+    M50 50L61 43L72 45L83 37M61 43L63 30L72 23M72 45L81 55L94 57
+    M50 50L45 62L34 68L29 82M45 62L51 73L48 91M34 68L20 67L10 75
+    M50 50L59 61L72 64L80 76M59 61L58 75L66 86M72 64L86 62L94 68"/>
+  ${cheerLevel>=5?`
+    <path d="
+      M50 50L0 0 M50 50L50 0 M50 50L100 0 M50 50L100 50
+      M50 50L100 100 M50 50L50 100 M50 50L0 100 M50 50L0 50
+      M50 50L25 0 M50 50L75 0 M50 50L100 25 M50 50L100 75
+      M50 50L75 100 M50 50L25 100 M50 50L0 75 M50 50L0 25
+      M50 10L63 13L75 25L87 38L90 50L87 63L75 75L63 87L50 90
+      L37 87L25 75L13 63L10 50L13 37L25 25L37 13Z
+      M50 20L61 23L77 39L80 50L77 61L61 77L50 80
+      L39 77L23 61L20 50L23 39L39 23Z
+      M15 20L25 10L35 20L40 30L35 40L25 45L15 40L10 30Z
+      M70 60L80 50L90 60L95 70L90 80L80 85L70 80L65 70Z"/>
+  `:''}`;
+
+  const flash=document.createElement('div');
+  flash.className='hf-flash';
+
+  const buddy=document.createElement('button');
+  buddy.type='button';
+  buddy.className='highfive-buddy';
+  buddy.setAttribute('aria-label','Tap Zippy for a high five');
+
+  const originalFace=document.getElementById('zippy-face');
+  if(originalFace){
+    buddy.style.backgroundColor=originalFace.style.backgroundColor||'#ffd84d';
+    const artwork=originalFace.cloneNode(true);
+    artwork.removeAttribute('id');
+    artwork.removeAttribute('aria-label');
+    buddy.appendChild(artwork);
+  }else{
+    buddy.textContent='😀';
+  }
+
+  const raisedHand=document.createElement('div');
+raisedHand.className='hf-raised-hand';
+raisedHand.textContent='✋';
+raisedHand.setAttribute('role','button');
+raisedHand.setAttribute('tabindex','0');
+raisedHand.setAttribute('aria-label','Give Zippy a high five');
+
+  const thumb=document.createElement('div');
+  thumb.className='hf-thumb';
+  thumb.textContent='👍';
+  thumb.setAttribute('aria-hidden','true');
+
+  const hit=document.createElement('div');
+  hit.className='hf-hit';
+  hit.textContent='SMACK!';
+  hit.setAttribute('aria-hidden','true');
+
+  stage.append(caption,flames,cracks,flash,buddy,raisedHand,thumb,hit);
+  document.body.classList.add('zippy-highfive-active');
+  document.body.appendChild(stage);
+
+  return {stage,caption,buddy,raisedHand};
+}
+
+async function startZippyHighFive(){
+  const dramatic=Number(S.settings.cheer||0)>=3;
+  const {stage,caption,buddy,raisedHand}=makeHighFiveStage(dramatic);
+  let finished=false;
+
+    const doHighFive=async()=>{
+    if(finished)return;
+    finished=true;
+    raisedHand.remove();
+
+    if(!dramatic){
+      stage.classList.add('smacked');
+      playZippySmack();
+      await waitForZippy(800);
+      stage.classList.add('returning');
+      await waitForZippy(850);
+      stage.remove();
+      document.body.classList.remove('zippy-highfive-active');
+      zippySpeak("You're doing good");
+      return;
+    }
+
+    stage.classList.add('cracked','explosion');
+    playZippySmack();
+    await waitForZippy(1800);
+
+    caption.textContent=
+      'You are doing SPECTACULARLY '+
+      (S.settings.name||'friend')+
+      '!!! You DESERVED that HIGH-FIVE!!!!!';
+
+    stage.classList.add('show-thumb');
+    await waitForZippy(3200);
+
+    stage.classList.add('returning');
+    await waitForZippy(850);
+    stage.remove();
+    document.body.classList.remove('zippy-highfive-active');
+  };
+
+buddy.onclick=doHighFive;
+
+const tapHighFiveHand=()=>{
+  raisedHand.remove();
+  doHighFive();
+};
+
+raisedHand.onclick=tapHighFiveHand;
+raisedHand.onkeydown=event=>{
+  if(event.key==='Enter'||event.key===' '){
+    event.preventDefault();
+    tapHighFiveHand();
+  }
+};
+
+}
+  
+function openZippyMenu(){
+  zippySpeak(
+    `Hi!! I'm ${S.settings.buddyName||'Zippy'}! What would you like to do?`
+  );
+  zippyMenu();
+}
+  
+/* ---------- render ---------- */
+function render(){
+  const app=document.getElementById('app');
+  const active=S.assignments.filter(assignment=>!assignment.done);
+
+  if(view==='home'){
+    const focus=dueToday();
+    const categories={
+      academic:S.classes.filter(item=>item.cat==='academic'),
+      other:S.classes.filter(item=>item.cat==='other')
+    };
+
+    app.innerHTML=`
+    <div class="top">
+      <div>
+        <h1>${esc(S.settings.name||'Your')}'s Planner</h1>
+        <div class="sub">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
+      </div>
+      <button class="ghost" id="b_set">⚙ Settings</button>
+    </div>
+    ${focus.length?`<div class="card"><h2>🔔 On your radar</h2>${focus.map(({a})=>`<div class="small" style="margin-bottom:6px;color:#111">${esc(message(a))}</div>`).join('')}</div>`:''}
+    <button class="pri big" id="b_new">＋ New assignment</button>
+<button class="big" id="b_list">📋 My assignments (${active.length} active)</button>    <div class="card">
+      <h2>Academic classes</h2>
+      ${categories.academic.map(item=>`<span class="chip academic">${esc(item.name)}</span>`).join('')||'<span class="small">None yet</span>'}
+      <h2 style="margin-top:12px">Other (sports, chess, clubs)</h2>
+      ${categories.other.map(item=>`<span class="chip other">${esc(item.name)}</span>`).join('')||'<span class="small">None yet</span>'}
+      <div class="row" style="margin-top:12px">
+        <button id="b_addc">+ Add class</button>
+        <button id="b_manc">Edit classes</button>
+      </div>
+    </div>`;
+
+    q('b_set').onclick=settingsModal;
+    q('b_new').onclick=newAssignment;
+    q('b_list').onclick=()=>{view='list';render()};
+    q('b_addc').onclick=addClass;
+    q('b_manc').onclick=manageClasses;
+    return;
+  }
+
+  const list=S.assignments.filter(assignment=>
+    filter==='all'||(filter==='done'?assignment.done:!assignment.done)
+  );
+  list.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
+
+  app.innerHTML=`
+  <div class="top">
+    <h1>My assignments</h1>
+    <button class="ghost" id="b_home">← Home</button>
+  </div>
+  <div class="tabs">
+    ${['active','done','all'].map(value=>`<button data-f="${value}" class="${filter===value?'on':''}">${value[0].toUpperCase()+value.slice(1)}</button>`).join('')}
+  </div>
+  <button class="pri big" id="b_new">＋ New assignment</button>
+  ${list.map(assignment=>{
+    const classItem=cls(assignment.classId);
+    const days=daysUntil(assignment.due);
+    const due=assignment.due?prettyDate(assignment.due):'No due date (daily reminders)';
+    let status='';
+
+    if(days!==null&&!assignment.done){
+      status=days<0
+        ?`<span class="late">Overdue by ${-days}d</span>`
+        :days===0
+          ?'<span class="soon">Due today</span>'
+          :days<=3
+            ?`<span class="soon">${days}d left</span>`
+            :`${days}d left`;
+    }
+
+    const typeLabel=TYPES[assignment.type]||'Other';
+    const typeClass=TYPES[assignment.type]?assignment.type:'other';
+
+    return `<div class="card asg ${assignment.done?'done':''}" data-id="${esc(assignment.id)}">
+      <div class="title">${assignment.done?'✓ ':''}${esc(assignment.title)}</div>
+      <div>
+        <span class="chip t-${typeClass}">${typeLabel}${assignment.subtitle?': '+esc(assignment.subtitle):''}</span>
+        ${classItem?`<span class="chip ${classItem.cat==='academic'?'academic':'other'}">${esc(classItem.name)}</span>`:''}
+      </div>
+      <div class="small">${esc(due)} ${status}</div>
+      ${assignment.notes?`<div class="small" style="margin-top:6px">📝 ${esc(assignment.notes)}</div>`:''}
+    </div>`;
+  }).join('')||'<div class="card empty">Nothing here yet.</div>'}`;
+
+  q('b_home').onclick=()=>{view='home';render()};
+  q('b_new').onclick=newAssignment;
+  app.querySelectorAll('[data-f]').forEach(button=>{
+    button.onclick=()=>{filter=button.dataset.f;render()};
+  });
+  app.querySelectorAll('.asg').forEach(element=>{
+    element.onclick=()=>editAssignment(element.dataset.id);
+  });
+}
+
+function q(id){return document.getElementById(id)}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+async function ensureName(){
+  while(!S.settings.name){
+    const name=await modal((box,close)=>{
+      box.innerHTML=`<h3>Welcome! 👋 What's your name?</h3><p class="small">I'll use it in your reminders.</p><input type="text" placeholder="Your name"><button class="pri">Let's go</button>`;
+      const input=box.querySelector('input');
+      const button=box.querySelector('button');
+      const submit=()=>{
+        const value=input.value.trim();
+        if(value)close(value);
+        else input.focus();
+      };
+      button.onclick=submit;
+      input.addEventListener('keydown',event=>{
+        if(event.key==='Enter')submit();
+      });
+      setTimeout(()=>input.focus(),50);
+    });
+
+    if(name){
+      S.settings.name=name;
+      save();
+    }
+  }
+}
+
+applyFont();
+updateZippy();
+q('zippy-face').onclick=openZippyMenu;
+applyWall();
+ensureName().then(async()=>{
+  let tourAlreadyComplete=false;
+  try{
+    tourAlreadyComplete=localStorage.getItem(ZIPPY_TOUR_KEY)==='yes';
+  }catch(error){}
+
+  if(!tourAlreadyComplete){
+    await startZippyTour();
+  }
+
+  render();
+  checkReminders();
+});
+setInterval(checkReminders,60000);
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden){
+    render();
+    checkReminders();
+  }
+});
+</script>
+</body>
+</html>
