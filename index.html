@@ -377,6 +377,92 @@ body.zippy-highfive-active #zippy-dock{visibility:hidden}
   .highfive-stage *,
   .zippy-menu-backdrop *{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+  /* Zippy's guided tour */
+.zippy-tour{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  overflow:auto;
+  background:rgba(0,0,0,.82);
+}
+.zippy-tour[hidden]{display:none}
+.zippy-tour-dialog{
+  width:min(100%,520px);
+  max-height:94vh;
+  overflow:auto;
+  padding:18px;
+  border-radius:18px;
+  background:#fff;
+  color:#1b1b2f;
+  box-shadow:0 12px 45px #0008;
+}
+.zippy-tour-dialog h2{margin:0 0 12px}
+.zippy-tour-demo{
+  position:relative;
+  isolation:isolate;
+  padding:14px;
+  border:1px solid #d1d5db;
+  border-radius:14px;
+  background:#fff;
+}
+.zippy-tour-demo::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:14px;
+  background:rgba(0,0,0,.72);
+  pointer-events:none;
+}
+.zippy-tour-demo [data-tour-focus]{
+  position:relative;
+  z-index:2;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72);
+}
+.tour-mock-control{
+  display:block;
+  width:100%;
+  margin:7px 0;
+  padding:11px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#f3f4f6;
+  color:#1b1b2f;
+  text-align:left;
+  font:inherit;
+}
+.tour-mock-control.primary{
+  background:#4f46e5;
+  color:#fff;
+  font-weight:700;
+}
+.tour-mock-input{
+  display:block;
+  width:100%;
+  margin:7px 0;
+  padding:12px;
+  border:1px solid #9ca3af;
+  border-radius:9px;
+  background:#fff;
+  color:#1b1b2f;
+}
+.zippy-tour-message{
+  margin:14px 0;
+  padding:12px;
+  border-radius:12px;
+  background:#eef2ff;
+  line-height:1.5;
+}
+.zippy-tour-actions{
+  display:flex;
+  gap:10px;
+}
+.zippy-tour-actions button{flex:1}
+  
 </style>
 </head>
 <body>
@@ -1670,7 +1756,324 @@ function toast(messageText){
   setTimeout(()=>element.remove(),6000);
   zippySpeak(messageText);
 }
+const ZIPPY_TOUR_KEY='zippy-first-tour-complete';
 
+function tourScene(scene){
+  const control=(text,focus=false,primary=false)=>
+    `<div class="tour-mock-control${primary?' primary':''}" ${focus?'data-tour-focus':''}>${text}</div>`;
+  const input=(value,focus=false)=>
+    `<div class="tour-mock-input" ${focus?'data-tour-focus':''}>${value}</div>`;
+  const heading=text=>`<strong>${text}</strong>`;
+
+  switch(scene){
+    case 'class-add':
+      return heading('Planner home')+
+        control('＋ New assignment')+
+        control('+ Add class',true)+
+        control('Edit classes');
+
+    case 'class-name':
+      return heading('Add a class')+
+        input('Calculus',true)+
+        control('OK',false,true);
+
+    case 'class-category':
+      return heading('Which category is “Calculus”?')+
+        control('Academic',true,true)+
+        control('Other (sports, chess, clubs...)');
+
+    case 'assignment-new':
+      return heading('Planner home')+
+        control('＋ New assignment',true,true)+
+        control('My assignments')+
+        control('+ Add class');
+
+    case 'assignment-title':
+      return heading('Assignment title')+
+        input('Calculus Unit Test',true)+
+        control('OK',false,true);
+
+    case 'assignment-class':
+      return heading('Which class is this for?')+
+        control('Chemistry')+
+        control('Physics')+
+        control('Calculus',true,true);
+
+    case 'assignment-type':
+      return heading('What type of assignment is this?')+
+        control('Test',true,true)+
+        control('Quiz')+
+        control('Homework')+
+        control('Special project')+
+        control('Other');
+
+    case 'assignment-due':
+      return heading('When is it due?')+
+        input('Choose a due date',true)+
+        control('Save date',false,true)+
+        control('Custom time')+
+        control('No due date');
+
+    case 'reminder-mode':
+      return heading('Reminder schedule')+
+        control('Use default',true,true)+
+        control('Custom time')+
+        control('Don’t remind me on this assignment');
+
+    case 'reminder-default':
+      return heading('Default reminder time')+
+        control('Hour: 4')+
+        control('Minute: 00')+
+        control('AM / PM: PM')+
+        control('Uses your device’s local time zone',true);
+
+    case 'reminder-custom':
+      return heading('Custom reminder schedule')+
+        input('Choose reminder dates',true)+
+        control('Add date')+
+        control('After the final day: remind me each day')+
+        control('After the final day: use the default schedule')+
+        control('After the final day: stop reminders');
+
+    case 'reminder-finish':
+      return heading('Finish creating the assignment')+
+        control('Continue',true,true)+
+        control('Cancel');
+
+    case 'settings-open':
+      return heading('Planner home')+
+        control('⚙ Settings',true)+
+        control('＋ New assignment')+
+        control('My assignments');
+
+    case 'settings-wallpaper':
+      return heading('Wallpaper')+
+        control('Sunset   Ocean   Forest   Fire',true)+
+        control('Night   Candy   Lime   Slate')+
+        input('Choose a picture');
+
+    case 'settings-font':
+      return heading('Reading font')+
+        control('Atkinson Hyperlegible',true)+
+        control('OpenDyslexic')+
+        control('Lexend')+
+        control('Andika')+
+        control('Comic Neue');
+
+    case 'settings-zippy':
+      return heading('Zippy')+
+        input('Zippy’s name')+
+        control('Choose Zippy’s color',true)+
+        control('Choose Zippy’s look')+
+        control('Zippy cheer level');
+
+    case 'settings-time':
+      return heading('Daily reminder time')+
+        input('4:00 PM',true)+
+        control('This is the default time for reminders.');
+
+    case 'settings-notifications':
+      return heading('Notifications')+
+        control('Tap to enable notifications',true);
+
+    case 'settings-backup':
+      return heading('Back up or restore planner data')+
+        control('Export Data',true)+
+        control('Import Data');
+
+    case 'settings-github':
+      return heading('Optional GitHub sync')+
+        input('username/repo-name')+
+        input('GitHub token',true)+
+        control('Save & sync now');
+
+    default:
+      return heading('Study Planner');
+  }
+}
+
+async function startZippyTour(){
+  const steps=[
+    {
+      title:'Let’s create a class first!',
+      message:'Classes help organize your assignments. Start by choosing Add class.',
+      scene:'class-add'
+    },
+    {
+      title:'Name your class',
+      message:'Type in your class name. In this example, I’ve typed “Calculus.”',
+      scene:'class-name'
+    },
+    {
+      title:'Choose a category',
+      message:'Click the category your class falls into. Academic is for school subjects; Other is for activities such as sports or clubs.',
+      scene:'class-category'
+    },
+    {
+      title:'Now let’s make an assignment',
+      message:'Choose New assignment to start adding work to your planner.',
+      scene:'assignment-new'
+    },
+    {
+      title:'Enter the assignment name',
+      message:'Type in your assignment’s name. This example is called “Calculus Unit Test.”',
+      scene:'assignment-title'
+    },
+    {
+      title:'Choose its class',
+      message:'Choose what class your assignment is from. Here are example classes; Calculus is highlighted.',
+      scene:'assignment-class'
+    },
+    {
+      title:'Choose the assignment type',
+      message:'Well, because it’s a Unit TEST, it should be a test!',
+      scene:'assignment-type'
+    },
+    {
+      title:'Choose a due date',
+      message:'Select a due date and save it. You can also choose Custom time or No due date.',
+      scene:'assignment-due'
+    },
+    {
+      title:'Choose a reminder schedule',
+      message:'Use default to follow the planner’s usual schedule, or choose Custom time to pick reminder dates yourself. You can also turn reminders off for this assignment.',
+      scene:'reminder-mode'
+    },
+    {
+      title:'Default reminder time',
+      message:'The default reminder uses the time you choose and your device’s local clock and time zone.',
+      scene:'reminder-default'
+    },
+    {
+      title:'Custom reminder dates',
+      message:'Add the dates you want reminders. After the last selected date, choose whether reminders continue daily, follow the default schedule, or stop.',
+      scene:'reminder-custom'
+    },
+    {
+      title:'Finish the assignment',
+      message:'Continue saves the reminder schedule and finishes creating the assignment. The new assignment is added to your planner.',
+      scene:'reminder-finish'
+    },
+    {
+      title:'Let’s look at Settings',
+      message:'Open Settings to personalize the planner and adjust its behavior.',
+      scene:'settings-open'
+    },
+    {
+      title:'Change the background',
+      message:'Choose a wallpaper, custom color, or your own picture from this section.',
+      scene:'settings-wallpaper'
+    },
+    {
+      title:'Choose a reading font',
+      message:'Pick the font that is most comfortable for you to read.',
+      scene:'settings-font'
+    },
+    {
+      title:'Personalize Zippy',
+      message:'Change my name, color, look, and cheer level here.',
+      scene:'settings-zippy'
+    },
+    {
+      title:'Set the daily reminder time',
+      message:'This sets the default time used by reminders. An assignment can instead have its own custom reminder schedule.',
+      scene:'settings-time'
+    },
+    {
+      title:'Notifications',
+      message:'Turn on browser notifications here. Your browser may ask you to give this site permission.',
+      scene:'settings-notifications'
+    },
+    {
+      title:'Back up your planner',
+      message:'Export Data downloads a backup copy. Import Data loads a backup and replaces the planner data in this browser.',
+      scene:'settings-backup'
+    },
+    {
+      title:'Optional GitHub sync',
+      message:'If you don’t have a GitHub account, this does not apply to you. GitHub sync is optional; it can save planner data to a repository you configure.',
+      scene:'settings-github'
+    },
+    {
+      title:'That’s the tour!',
+      message:'You can open my menu and choose Re-Tour whenever you want to see this guide again.',
+      scene:'settings-open'
+    }
+  ];
+
+  const overlay=document.createElement('div');
+  overlay.className='zippy-tour';
+  overlay.innerHTML=`
+    <section class="zippy-tour-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="zippy-tour-title" aria-describedby="zippy-tour-message">
+      <h2 id="zippy-tour-title"></h2>
+      <div class="zippy-tour-demo"></div>
+      <p class="zippy-tour-message" id="zippy-tour-message" role="status"></p>
+      <p class="small" id="zippy-tour-count"></p>
+      <div class="zippy-tour-actions">
+        <button type="button" class="pri" id="zippy-tour-next">Next</button>
+        <button type="button" class="danger" id="zippy-tour-skip">Skip Tour</button>
+      </div>
+    </section>`;
+
+  document.body.appendChild(overlay);
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+
+  const title=overlay.querySelector('#zippy-tour-title');
+  const demo=overlay.querySelector('.zippy-tour-demo');
+  const message=overlay.querySelector('#zippy-tour-message');
+  const count=overlay.querySelector('#zippy-tour-count');
+  const next=overlay.querySelector('#zippy-tour-next');
+  const skip=overlay.querySelector('#zippy-tour-skip');
+
+  let index=0;
+  let finished=false;
+
+  const finish=()=>{
+    if(finished)return;
+    finished=true;
+    try{localStorage.setItem(ZIPPY_TOUR_KEY,'yes')}catch(error){}
+    document.removeEventListener('keydown',trapKeys,true);
+    document.body.style.overflow=oldOverflow;
+    overlay.remove();
+  };
+
+  const draw=()=>{
+    const step=steps[index];
+    title.textContent=step.title;
+    demo.innerHTML=tourScene(step.scene);
+    message.textContent=step.message;
+    count.textContent=`Step ${index+1} of ${steps.length}`;
+    next.textContent=index===steps.length-1?'Finish':'Next';
+    zippySpeak(step.message);
+  };
+
+  const trapKeys=event=>{
+    if(event.key==='Escape'){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if(event.key==='Tab'){
+      event.preventDefault();
+      (document.activeElement===next?skip:next).focus();
+    }
+  };
+
+  next.onclick=()=>{
+    if(index===steps.length-1){
+      finish();
+      return;
+    }
+    index++;
+    draw();
+  };
+  skip.onclick=finish;
+  document.addEventListener('keydown',trapKeys,true);
+  draw();
+  next.focus();
+}
   const ZIPPY_WHAT_ARE_YOU_KEY='zippy-what-are-you-used';
 
 function zippyMenu(){
@@ -1724,6 +2127,7 @@ function zippyMenu(){
     });
   }
 
+  addChoice('Re-Tour',startZippyTour);
   addChoice('High five!',startZippyHighFive);
   document.body.appendChild(backdrop);
 }
@@ -2036,7 +2440,16 @@ applyFont();
 updateZippy();
 q('zippy-face').onclick=openZippyMenu;
 applyWall();
-ensureName().then(()=>{
+ensureName().then(async()=>{
+  let tourAlreadyComplete=false;
+  try{
+    tourAlreadyComplete=localStorage.getItem(ZIPPY_TOUR_KEY)==='yes';
+  }catch(error){}
+
+  if(!tourAlreadyComplete){
+    await startZippyTour();
+  }
+
   render();
   checkReminders();
 });
