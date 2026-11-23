@@ -1,52 +1,60 @@
 {
- "name": "Gabe",
- "classes": [
-  {
-   "id": "9v5fmbq",
-   "name": "Ap Calculus",
-   "cat": "academic"
+  "name": "Gabe",
+  "classes": [
+    {
+      "id": "9v5fmbq",
+      "name": "Ap Calculus",
+      "cat": "academic"
+    },
+    {
+      "id": "8rugpzd",
+      "name": "Ap Chemistry",
+      "cat": "academic"
+    },
+    {
+      "id": "z1y53wn",
+      "name": "Concurrent WH",
+      "cat": "academic"
+    },
+    {
+      "id": "ytbi7e2",
+      "name": "Honors spanish",
+      "cat": "academic"
+    },
+    {
+      "id": "nnrr4za",
+      "name": "Ap Physics",
+      "cat": "academic"
+    },
+    {
+      "id": "o0ydi4o",
+      "name": "English",
+      "cat": "academic"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "hohsm8b",
+      "title": "Calculus unit 4 test",
+      "classId": "9v5fmbq",
+      "type": "test",
+      "subtitle": "",
+      "due": "2026-11-29",
+      "notes": "",
+      "done": false,
+      "last": "2026-11-22",
+      "reminder": {
+        "enabled": true,
+        "mode": "default",
+        "time": "16:00",
+        "dates": [],
+        "after": "default"
+      }
+    }
+  ],
+  "settings": {
+    "time": "16:00",
+    "font": "atkinson"
   },
-  {
-   "id": "8rugpzd",
-   "name": "Ap Chemistry",
-   "cat": "academic"
-  },
-  {
-   "id": "z1y53wn",
-   "name": "Concurrent WH",
-   "cat": "academic"
-  },
-  {
-   "id": "ytbi7e2",
-   "name": "Honors spanish",
-   "cat": "academic"
-  },
-  {
-   "id": "nnrr4za",
-   "name": "Ap Physics",
-   "cat": "academic"
-  },
-  {
-   "id": "o0ydi4o",
-   "name": "English",
-   "cat": "academic"
-  }
- ],
- "assignments": [
-  {
-   "id": "hohsm8b",
-   "title": "Calculus unit 4 test",
-   "classId": "9v5fmbq",
-   "type": "test",
-   "subtitle": "",
-   "due": "2026-11-29",
-   "notes": "",
-   "done": false,
-   "last": ""
-  }
- ],
- "settings": {
-  "time": "16:00"
- },
- "updated": "2026-11-20T23:01:42.554Z"
+  "updated": "2026-11-23T02:50:45.815Z"
 }
