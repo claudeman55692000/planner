@@ -1437,7 +1437,7 @@ function editAssignment(id){
       }
     };
 
-    get('e_save').onclick=()=>{
+   get('e_save').onclick=()=>{
       assignment.title=get('e_t').value.trim()||assignment.title;
       assignment.classId=get('e_c').value;
       assignment.type=get('e_y').value;
@@ -1447,7 +1447,7 @@ function editAssignment(id){
       assignment.notes=get('e_o').value;
       assignment.last='';
       save();
-            if(!assignment.done){
+      if(!assignment.done){
         scheduleDigestAssignment(assignment).catch(error=>toast(error.message));
       }
       close(1);
@@ -1456,28 +1456,7 @@ function editAssignment(id){
       checkReminders();
     };
 
-         assignment.done=!assignment.done;
-      assignment.last='';
-      save();
-      if(assignment.done){
-        deleteDigestAssignment(assignment.id).catch(error=>toast(error.message));
-      }else{
-        scheduleDigestAssignment(assignment).catch(error=>toast(error.message));
-      }
-
     get('e_del').onclick=()=>{
-      if(confirm('Delete this assignment?')){
-        S.assignments=S.assignments.filter(item=>item!==assignment);
-        deleteDigestAssignment(assignment.id).catch(error=>toast(error.message));
-        save();
-        close(1);
-        render();
-      }
-    };
-
-    get('e_x').onclick=()=>close(null);
-  });
-}
 
 /* ---------- settings ---------- */
 function settingsModal(){
