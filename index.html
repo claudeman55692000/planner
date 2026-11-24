@@ -553,6 +553,43 @@ body.zippy-highfive-active #zippy-dock{visibility:hidden}
 
 const KEY='gabe-planner-v1';
 const SYNC_KEY='gabe-planner-sync';
+const DIGEST_EMAIL_KEY='gabe-planner-email';
+
+function digestEmail(){
+  try{return localStorage.getItem(DIGEST_EMAIL_KEY)||''}
+  catch(error){return ''}
+}
+
+async function scheduleDigestAssignment(assignment){
+  const email=digestEmail();
+  if(!email||!assignment)return;
+
+  const response=await fetch('https://planner.gabe55692000.workers.dev/schedule',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      id:assignment.id,
+      email,
+      title:assignment.title,
+      course:cls(assignment.classId)?.name||'',
+      dueTimestamp:assignment.due
+        ?Date.parse(assignment.due+'T12:00:00Z')
+        :null
+    })
+  });
+  if(!response.ok)throw new Error('Could not save this email reminder.');
+}
+
+async function deleteDigestAssignment(id){
+  if(!id)return;
+  const response=await fetch('https://planner.gabe55692000.workers.dev/delete',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id})
+  });
+  if(!response.ok)throw new Error('Could not delete this email reminder.');
+}
+  
 const TYPES={test:'Test',quiz:'Quiz',homework:'Homework',project:'Special project',other:'Other'};
 const WINDOW={test:7,quiz:4,project:10,homework:2,other:3};
 const WALLS=[
@@ -1325,7 +1362,7 @@ async function newAssignment(){
   const reminder=await reminderModal(initialReminder);
   if(!reminder)return;
 
-  S.assignments.push({
+    const assignment={
     id:uid(),
     title,
     classId,
@@ -1336,9 +1373,11 @@ async function newAssignment(){
     notes:'',
     done:false,
     last:''
-  });
+  };
+  S.assignments.push(assignment);
 
   save();
+  scheduleDigestAssignment(assignment).catch(error=>toast(error.message));
   view='list';
   filter='active';
   render();
@@ -1408,23 +1447,28 @@ function editAssignment(id){
       assignment.notes=get('e_o').value;
       assignment.last='';
       save();
+            if(!assignment.done){
+        scheduleDigestAssignment(assignment).catch(error=>toast(error.message));
+      }
       close(1);
       render();
       toast('Saved');
       checkReminders();
     };
 
-    get('e_done').onclick=()=>{
-      assignment.done=!assignment.done;
+         assignment.done=!assignment.done;
       assignment.last='';
       save();
-      close(1);
-      render();
-    };
+      if(assignment.done){
+        deleteDigestAssignment(assignment.id).catch(error=>toast(error.message));
+      }else{
+        scheduleDigestAssignment(assignment).catch(error=>toast(error.message));
+      }
 
     get('e_del').onclick=()=>{
       if(confirm('Delete this assignment?')){
         S.assignments=S.assignments.filter(item=>item!==assignment);
+        deleteDigestAssignment(assignment.id).catch(error=>toast(error.message));
         save();
         close(1);
         render();
@@ -1471,6 +1515,10 @@ function settingsModal(){
     <label>Custom color</label><input type="color" id="s_col" style="width:100%;height:44px;border:0;margin-bottom:10px">
     <label>Your own picture</label><input type="file" accept="image/*" id="s_img" style="margin-bottom:10px">
     <label>Daily reminder time</label><input type="time" id="s_time" value="${esc(S.settings.time)}">
+    <label>Email Digest (6 AM &amp; 6 PM, Encrypted)</label>
+    <input type="email" id="s_digest_email" placeholder="you@example.com" value="${esc(digestEmail())}">
+    <button type="button" id="s_digest_save">Save digest email</button>
+    <button type="button" id="s_digest_clear" class="danger">Clear digest email</button>
     <label>GitHub sync: your repo (username/repo-name)</label><input type="text" id="s_repo" placeholder="yourname/planner" value="${esc(syncCfg().repo||'')}">
     <label>GitHub token</label><input type="password" id="s_tok" placeholder="paste token" value="${esc(syncCfg().token||'')}">
     <button id="s_sync">Save &amp; sync now</button>
@@ -1481,6 +1529,36 @@ function settingsModal(){
     <button class="pri" id="s_ok">Done</button>`;
 
     const get=id=>box.querySelector('#'+id);
+        get('s_digest_save').onclick=async()=>{
+      const email=get('s_digest_email').value.trim().toLowerCase();
+      if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        toast('Enter a valid email address.');
+        return;
+      }
+      try{
+        if(email)localStorage.setItem(DIGEST_EMAIL_KEY,email);
+        else localStorage.removeItem(DIGEST_EMAIL_KEY);
+        for(const assignment of S.assignments.filter(item=>!item.done)){
+          await scheduleDigestAssignment(assignment);
+        }
+        toast(email?'Digest email saved.':'Digest email cleared.');
+      }catch(error){
+        toast(error.message||'Could not save digest settings.');
+      }
+    };
+
+    get('s_digest_clear').onclick=async()=>{
+      try{
+        localStorage.removeItem(DIGEST_EMAIL_KEY);
+        for(const assignment of S.assignments){
+          await deleteDigestAssignment(assignment.id);
+        }
+        get('s_digest_email').value='';
+        toast('Digest email cleared.');
+      }catch(error){
+        toast(error.message||'Could not clear digest settings.');
+      }
+    };
 
     box.querySelectorAll('[data-font]').forEach(button=>{
       button.onclick=()=>{
