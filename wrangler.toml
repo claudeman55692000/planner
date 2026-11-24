@@ -1,1 +1,11 @@
+name = "planner"
+main = "worker.js"
+compatibility_date = "2026-11-01"
 
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "study-planner-db"
+database_id = "c1967282-8103-4dca-bedc-e0db70db7add"
