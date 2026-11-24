@@ -9,3 +9,4 @@ crons = ["* * * * *"]
 binding = "DB"
 database_name = "study-planner-db"
 database_id = "c1967282-8103-4dca-bedc-e0db70db7add"
+
