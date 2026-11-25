@@ -42,7 +42,7 @@
       "due": "2026-11-29",
       "notes": "",
       "done": false,
-      "last": "2026-11-22",
+      "last": "2026-11-24",
       "reminder": {
         "enabled": true,
         "mode": "default",
@@ -56,5 +56,5 @@
     "time": "16:00",
     "font": "atkinson"
   },
-  "updated": "2026-11-23T03:44:33.415Z"
+  "updated": "2026-11-25T01:59:41.674Z"
 }
