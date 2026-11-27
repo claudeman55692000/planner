@@ -42,7 +42,7 @@
       "due": "2026-11-29",
       "notes": "",
       "done": false,
-      "last": "2026-11-24",
+      "last": "2026-11-26",
       "reminder": {
         "enabled": true,
         "mode": "default",
@@ -56,5 +56,5 @@
     "time": "16:00",
     "font": "opendyslexic"
   },
-  "updated": "2026-11-25T02:00:59.353Z"
+  "updated": "2026-11-27T00:36:40.417Z"
 }
